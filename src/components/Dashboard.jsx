@@ -6,10 +6,69 @@ const Dashboard = ({ user, onLogout }) => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('today')
   const [showModal, setShowModal] = useState(null)
+  const [newOrderNotification, setNewOrderNotification] = useState(null)
 
   useEffect(() => {
     fetchOrders()
+    
+    // Cer permisiune pentru notificări browser
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
   }, [])
+
+  // Separate useEffect pentru real-time cu delay pentru a permite autentificarea
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Setup real-time subscription pentru comenzi noi
+      const subscription = supabase
+        .channel('orders_realtime', {
+          config: {
+            presence: {
+              key: user?.id || 'anonymous'
+            }
+          }
+        })
+        .on('postgres_changes', 
+          { event: 'INSERT', schema: 'public', table: 'orders' },
+          (payload) => {
+            // Adaug comanda nouă la lista existentă
+            setOrders(prevOrders => [payload.new, ...prevOrders])
+            
+            // Arăt notificare pentru comandă nouă
+            setNewOrderNotification(payload.new)
+            setTimeout(() => setNewOrderNotification(null), 5000)
+            
+            // Sunet notificare (opțional)
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('Comandă nouă!', {
+                body: `${payload.new.order_number} - ${payload.new.customer_name}`,
+                icon: '/favicon.ico'
+              })
+            }
+          }
+        )
+        .on('postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'orders' },
+          (payload) => {
+            // Actualizez comanda în listă
+            setOrders(prevOrders => 
+              prevOrders.map(order => 
+                order.id === payload.new.id ? payload.new : order
+              )
+            )
+          }
+        )
+        .subscribe()
+
+      // Cleanup subscription
+      return () => {
+        subscription.unsubscribe()
+      }
+    }, 1000) // 1 second delay
+
+    return () => clearTimeout(timer)
+  }, [user])
 
   const fetchOrders = async () => {
     try {
@@ -76,6 +135,20 @@ const Dashboard = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Notificare comandă nouă */}
+      {newOrderNotification && (
+        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg animate-pulse">
+          <div className="flex items-center space-x-2">
+            <span className="text-2xl">🔔</span>
+            <div>
+              <div className="font-bold">Comandă nouă!</div>
+              <div className="text-sm">{newOrderNotification.order_number}</div>
+              <div className="text-sm">{newOrderNotification.customer_name}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -236,7 +309,6 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
   const handleToggle = (e) => {
     e.stopPropagation()
     e.preventDefault()
-    console.log(`Toggle pentru comanda ${order.order_number}: ${expanded} -> ${!expanded}`)
     setExpanded(!expanded)
   }
 
