@@ -39,7 +39,59 @@ const Dashboard = ({ user, onLogout }) => {
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 5000)
             
-            // Sunet notificare (opțional)
+            // Sunet telefon clasic cu furcă - RRRRING RRRRING
+            try {
+              const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+              
+              const playClassicRing = (startTime) => {
+                // Două frecvențe pentru sunetul clasic de telefon
+                const osc1 = audioContext.createOscillator()
+                const osc2 = audioContext.createOscillator()
+                const gainNode = audioContext.createGain()
+                
+                osc1.connect(gainNode)
+                osc2.connect(gainNode)
+                gainNode.connect(audioContext.destination)
+                
+                // Frecvențele clasice de telefon: 440Hz și 480Hz cu modulare
+                osc1.frequency.setValueAtTime(440, startTime)
+                osc2.frequency.setValueAtTime(480, startTime)
+                osc1.type = 'sine'
+                osc2.type = 'sine'
+                
+                // Trillul clasic - vibrația care face RRRRR
+                const tremolo = audioContext.createOscillator()
+                const tremoloGain = audioContext.createGain()
+                tremolo.frequency.setValueAtTime(25, startTime) // 25Hz tremolo
+                tremolo.connect(tremoloGain.gain)
+                tremoloGain.gain.setValueAtTime(0.3, startTime)
+                
+                gainNode.connect(tremoloGain)
+                tremoloGain.connect(audioContext.destination)
+                
+                // Envelope pentru ring-ul complet
+                gainNode.gain.setValueAtTime(0, startTime)
+                gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.1)
+                gainNode.gain.setValueAtTime(0.4, startTime + 1.0)
+                gainNode.gain.linearRampToValueAtTime(0, startTime + 1.2)
+                
+                osc1.start(startTime)
+                osc1.stop(startTime + 1.2)
+                osc2.start(startTime)
+                osc2.stop(startTime + 1.2)
+                tremolo.start(startTime)
+                tremolo.stop(startTime + 1.2)
+              }
+              
+              // Două ring-uri clasice cu pauză
+              playClassicRing(audioContext.currentTime)
+              playClassicRing(audioContext.currentTime + 1.5)
+              
+            } catch (e) {
+              console.log('Nu s-a putut reda sunetul:', e)
+            }
+            
+            // Notificare browser (opțional)
             if ('Notification' in window && Notification.permission === 'granted') {
               new Notification('Comandă nouă!', {
                 body: `${payload.new.order_number} - ${payload.new.customer_name}`,
@@ -137,13 +189,14 @@ const Dashboard = ({ user, onLogout }) => {
     <div className="min-h-screen bg-gray-100">
       {/* Notificare comandă nouă */}
       {newOrderNotification && (
-        <div className="fixed top-4 right-4 z-50 bg-green-500 text-white p-4 rounded-lg shadow-lg animate-pulse">
-          <div className="flex items-center space-x-2">
-            <span className="text-2xl">🔔</span>
-            <div>
-              <div className="font-bold">Comandă nouă!</div>
-              <div className="text-sm">{newOrderNotification.order_number}</div>
-              <div className="text-sm">{newOrderNotification.customer_name}</div>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-green-500 text-white p-8 rounded-2xl shadow-2xl animate-bounce border-4 border-yellow-400 max-w-md mx-4">
+            <div className="text-center space-y-4">
+              <div className="text-6xl">🔔</div>
+              <div className="text-2xl font-bold">COMANDĂ NOUĂ!</div>
+              <div className="text-xl font-semibold">{newOrderNotification.order_number}</div>
+              <div className="text-lg">{newOrderNotification.customer_name}</div>
+              <div className="text-lg font-bold">{newOrderNotification.total} LEI</div>
             </div>
           </div>
         </div>
