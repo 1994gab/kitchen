@@ -8,6 +8,7 @@ const ProductsManager = () => {
   const [editForm, setEditForm] = useState({})
   const [activeCategory, setActiveCategory] = useState('all')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [modal, setModal] = useState({ show: false, message: '', type: 'success' })
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -90,10 +91,10 @@ const ProductsManager = () => {
       ))
       
       setEditingId(null)
-      alert('Produs actualizat cu succes!')
+      setModal({ show: true, message: 'Produs actualizat cu succes!', type: 'success' })
     } catch (error) {
       console.error('Error updating product:', error)
-      alert('Eroare la actualizare!')
+      setModal({ show: true, message: 'Eroare la actualizare!', type: 'error' })
     }
   }
 
@@ -114,10 +115,10 @@ const ProductsManager = () => {
       if (error) throw error
       
       setProducts(products.filter(p => p.id !== id))
-      alert('Produs șters cu succes!')
+      setModal({ show: true, message: 'Produs șters cu succes!', type: 'success' })
     } catch (error) {
       console.error('Error deleting product:', error)
-      alert('Eroare la ștergere!')
+      setModal({ show: true, message: 'Eroare la ștergere!', type: 'error' })
     }
   }
 
@@ -128,7 +129,7 @@ const ProductsManager = () => {
       const originalPrice = parseFloat(newProduct.original_price) || 0;
       
       if (!newProduct.name || price <= 0) {
-        alert('Te rog completează numele și prețul!')
+        setModal({ show: true, message: 'Te rog completează numele și prețul!', type: 'error' })
         return
       }
 
@@ -166,10 +167,10 @@ const ProductsManager = () => {
       })
       setShowAddForm(false)
       
-      alert('Produs adăugat cu succes!')
+      setModal({ show: true, message: 'Produs adăugat cu succes!', type: 'success' })
     } catch (error) {
       console.error('Error adding product:', error)
-      alert('Eroare la adăugare!')
+      setModal({ show: true, message: 'Eroare la adăugare!', type: 'error' })
     }
   }
 
@@ -190,6 +191,47 @@ const ProductsManager = () => {
   }
 
   return (
+    <>
+      {/* Modal pentru notificări */}
+      {modal.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setModal({ ...modal, show: false })}></div>
+          <div className={`relative bg-white rounded-lg shadow-xl p-6 max-w-md mx-4 ${
+            modal.type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'
+          }`}>
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                {modal.type === 'success' ? (
+                  <div className="text-green-500 text-2xl">✓</div>
+                ) : (
+                  <div className="text-red-500 text-2xl">✕</div>
+                )}
+              </div>
+              <div className="ml-3 flex-1">
+                <p className={`text-lg font-medium ${
+                  modal.type === 'success' ? 'text-green-900' : 'text-red-900'
+                }`}>
+                  {modal.type === 'success' ? 'Succes!' : 'Eroare!'}
+                </p>
+                <p className="mt-1 text-gray-600">{modal.message}</p>
+              </div>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setModal({ ...modal, show: false })}
+                className={`px-4 py-2 rounded-lg font-medium text-white ${
+                  modal.type === 'success' 
+                    ? 'bg-green-500 hover:bg-green-600' 
+                    : 'bg-red-500 hover:bg-red-600'
+                }`}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
@@ -587,6 +629,7 @@ const ProductsManager = () => {
         )}
       </div>
     </div>
+    </>
   )
 }
 
