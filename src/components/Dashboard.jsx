@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
+import ProductsManager from './ProductsManager'
 
 const Dashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([])
@@ -214,6 +215,13 @@ const Dashboard = ({ user, onLogout }) => {
                 Bună, {user.username}!
               </span>
               <button
+                onClick={() => setActiveTab('products')}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2 shadow-md"
+              >
+                <span>🍕</span>
+                <span className="font-medium">Produse</span>
+              </button>
+              <button
                 onClick={onLogout}
                 className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
               >
@@ -285,6 +293,8 @@ const Dashboard = ({ user, onLogout }) => {
           {activeTab === 'paid' && <PaidOrdersTab groupedPaidOrders={groupedPaidOrders} />}
 
           {activeTab === 'rejected' && <RejectedOrdersTab rejectedOrders={rejectedOrders} />}
+          
+          {activeTab === 'products' && <ProductsManager />}
         </div>
 
         {/* Modal pentru confirmare */}
