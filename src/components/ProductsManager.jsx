@@ -9,6 +9,8 @@ const ProductsManager = () => {
   const [activeCategory, setActiveCategory] = useState('all')
   const [showAddForm, setShowAddForm] = useState(false)
   const [modal, setModal] = useState({ show: false, message: '', type: 'success' })
+  const [countdown, setCountdown] = useState(0)
+  const [showRefreshNotice, setShowRefreshNotice] = useState(false)
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -18,12 +20,34 @@ const ProductsManager = () => {
     category: 'Pizza',
     image: '/img/menu/1.jpg',
     ingredients: [],
-    allergens: []
+    allergens: [],
+    extras: []
   })
 
   useEffect(() => {
     fetchProducts()
   }, [])
+
+  // Timer countdown effect
+  useEffect(() => {
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        const newCount = countdown - 1
+        setCountdown(newCount)
+        
+        // Când ajunge la 0, arăt notificarea de refresh
+        if (newCount === 0) {
+          setShowRefreshNotice(true)
+        }
+      }, 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [countdown])
+
+  // Funcție pentru pornirea countdown-ului
+  const startCountdown = () => {
+    setCountdown(60) // 60 secunde (1 minut)
+  }
 
   const fetchProducts = async () => {
     try {
@@ -62,7 +86,8 @@ const ProductsManager = () => {
       is_on_sale: product.is_on_sale || false,
       category: product.category || '',
       ingredients: ingredients,
-      allergens: product.allergens || []
+      allergens: product.allergens || [],
+      extras: product.extras || []
     })
   }
 
@@ -92,6 +117,7 @@ const ProductsManager = () => {
       
       setEditingId(null)
       setModal({ show: true, message: 'Produs actualizat cu succes!', type: 'success' })
+      startCountdown()
     } catch (error) {
       console.error('Error updating product:', error)
       setModal({ show: true, message: 'Eroare la actualizare!', type: 'error' })
@@ -116,6 +142,7 @@ const ProductsManager = () => {
       
       setProducts(products.filter(p => p.id !== id))
       setModal({ show: true, message: 'Produs șters cu succes!', type: 'success' })
+      startCountdown()
     } catch (error) {
       console.error('Error deleting product:', error)
       setModal({ show: true, message: 'Eroare la ștergere!', type: 'error' })
@@ -163,11 +190,13 @@ const ProductsManager = () => {
         category: 'Pizza',
         image: '/img/menu/1.jpg',
         ingredients: [],
-        allergens: []
+        allergens: [],
+        extras: []
       })
       setShowAddForm(false)
       
       setModal({ show: true, message: 'Produs adăugat cu succes!', type: 'success' })
+      startCountdown()
     } catch (error) {
       console.error('Error adding product:', error)
       setModal({ show: true, message: 'Eroare la adăugare!', type: 'error' })
@@ -192,6 +221,53 @@ const ProductsManager = () => {
 
   return (
     <>
+      {/* Timer countdown notification */}
+      {countdown > 0 && (
+        <div className="fixed bottom-4 right-4 z-40 bg-blue-500 text-white rounded-lg shadow-lg p-4 max-w-sm">
+          <div className="flex items-center">
+            <div className="animate-spin mr-3">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">Actualizare în curs...</p>
+              <p className="text-sm">Site-ul se va actualiza în {countdown} secunde</p>
+            </div>
+          </div>
+          <div className="mt-2 bg-blue-400 rounded-full h-1 overflow-hidden">
+            <div 
+              className="bg-white h-full transition-all duration-1000 ease-linear"
+              style={{ width: `${(60 - countdown) / 60 * 100}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
+      
+      {/* Refresh notification */}
+      {showRefreshNotice && (
+        <div className="fixed bottom-4 right-4 z-40 bg-green-500 text-white rounded-lg shadow-lg p-4 max-w-sm animate-pulse">
+          <div className="flex items-start">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold">✨ Gata! Site-ul este actualizat!</p>
+              <p className="text-sm mt-1">Deschide site-ul și apasă F5 sau Ctrl+R pentru a vedea modificările.</p>
+              <button
+                onClick={() => setShowRefreshNotice(false)}
+                className="mt-2 bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm font-medium"
+              >
+                Am înțeles
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal pentru notificări */}
       {modal.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -292,7 +368,10 @@ const ProductsManager = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Preț Vechi</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Preț Vechi 
+                  <span className="text-xs font-normal text-gray-500 ml-1">(opțional)</span>
+                </label>
                 <input
                   type="text"
                   value={newProduct.original_price || ''}
@@ -305,8 +384,19 @@ const ProductsManager = () => {
                     setNewProduct({...newProduct, original_price: Math.max(0, value)});
                   }}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="0.00"
+                  placeholder="Ex: 45.99"
                 />
+                <div className="text-xs text-gray-500 mt-1 space-y-1">
+                  <p>💡 <strong>Cum funcționează:</strong></p>
+                  <p className="ml-3">• Dacă Preț Vechi > Preț Nou → afișează reducere pe site</p>
+                  <p className="ml-3">• Dacă Preț Vechi ≤ Preț Nou → afișează preț normal</p>
+                  <p className="ml-3">• Fără Preț Vechi → afișează preț normal</p>
+                  <p className="mt-1">
+                    <strong>Exemplu:</strong> Preț 35 lei, Preț Vechi 45 lei → 
+                    <span className="line-through ml-1">45 lei</span> 
+                    <span className="text-red-600 font-semibold">35 lei (-22%)</span>
+                  </p>
+                </div>
               </div>
               <div className="col-span-2 md:col-span-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Descriere</label>
@@ -358,6 +448,80 @@ const ProductsManager = () => {
                   placeholder="Ex: Gluten, Lactoză, Ouă, Muștar"
                 />
               </div>
+              
+              {/* Extras pentru produs nou */}
+              <div className="col-span-2 md:col-span-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">➕ Extras disponibile</label>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  {newProduct.extras && newProduct.extras.length > 0 ? (
+                    <div className="space-y-2 mb-3">
+                      {newProduct.extras.map((extra, index) => (
+                        <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                          <span className="font-medium">{extra.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-green-600 font-bold">{extra.price} lei</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newExtras = newProduct.extras.filter((_, i) => i !== index);
+                                setNewProduct({...newProduct, extras: newExtras});
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm mb-3">Adaugă extras pentru acest produs</p>
+                  )}
+                  
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Nume extra (ex: Bacon)"
+                      className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                      id="new-extra-name"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Preț"
+                      min="0"
+                      step="0.5"
+                      className="w-24 px-3 py-2 border rounded-lg text-sm"
+                      id="new-extra-price"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nameInput = document.getElementById('new-extra-name');
+                        const priceInput = document.getElementById('new-extra-price');
+                        
+                        if (nameInput.value && priceInput.value) {
+                          const newExtra = {
+                            name: nameInput.value,
+                            price: parseFloat(priceInput.value)
+                          };
+                          
+                          const newExtras = [...(newProduct.extras || []), newExtra];
+                          setNewProduct({...newProduct, extras: newExtras});
+                          
+                          nameInput.value = '';
+                          priceInput.value = '';
+                        } else {
+                          setModal({ show: true, message: 'Completează numele și prețul pentru extra!', type: 'error' });
+                        }
+                      }}
+                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                    >
+                      Adaugă
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
               <div className="col-span-2 md:col-span-4 flex justify-end gap-3">
                 <button
                   onClick={() => setShowAddForm(false)}
@@ -465,7 +629,7 @@ const ProductsManager = () => {
                               is_on_sale: value > parseFloat(editForm.price || 0)
                             });
                           }}
-                          placeholder="Preț vechi"
+                          placeholder="Ex: 45.99"
                           className="w-24 px-2 py-1 border rounded"
                         />
                       </td>
@@ -512,7 +676,7 @@ const ProductsManager = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {product.is_on_sale ? (
+                        {product.original_price && product.original_price > 0 ? (
                           <span className="text-gray-400 line-through">
                             {product.original_price} lei
                           </span>
@@ -556,6 +720,36 @@ const ProductsManager = () => {
                   <tr className="bg-blue-50">
                     <td colSpan="6" className="px-4 py-4">
                       <div className="grid grid-cols-1 gap-4">
+                        {/* Info despre prețul vechi */}
+                        <div className="bg-blue-100 p-3 rounded-lg">
+                          <div className="text-xs text-gray-600 space-y-2">
+                            <p>
+                              💡 <strong>Ghid Preț Vechi & Reduceri:</strong>
+                            </p>
+                            <div className="ml-4 space-y-1">
+                              <p>
+                                ✅ <strong>Pentru reducere:</strong> Preț vechi > Preț nou
+                                <br />
+                                <span className="ml-4">Ex: Preț vechi 45 lei, Preț nou 35 lei → Pe site: </span>
+                                <span className="line-through">45 lei</span> 
+                                <span className="text-red-600 font-semibold ml-1">35 lei (-22%)</span>
+                              </p>
+                              <p>
+                                ⚠️ <strong>Fără reducere:</strong> Preț vechi ≤ Preț nou SAU fără preț vechi
+                                <br />
+                                <span className="ml-4">Ex: Preț vechi 30 lei, Preț nou 35 lei → Pe site: </span>
+                                <span className="font-semibold">35 lei</span> (preț normal)
+                              </p>
+                              <p>
+                                📊 <strong>În tabel:</strong> Coloana "Reducere Estimată" va afișa:
+                                <br />
+                                <span className="ml-4">• Procentul reducerii când există (ex: -22%)</span>
+                                <br />
+                                <span className="ml-4">• "-" când nu există reducere sau preț vechi</span>
+                              </p>
+                            </div>
+                          </div>
+                        </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             📝 Descriere
@@ -611,6 +805,84 @@ const ProductsManager = () => {
                             rows="2"
                             placeholder="Ex: Gluten, Lactoză, Ouă, Muștar"
                           />
+                        </div>
+                        
+                        {/* Secțiune Extras */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            ➕ Extras disponibile
+                          </label>
+                          <div className="bg-gray-50 p-3 rounded-lg">
+                            {/* Lista de extras existente */}
+                            {editForm.extras && editForm.extras.length > 0 ? (
+                              <div className="space-y-2 mb-3">
+                                {editForm.extras.map((extra, index) => (
+                                  <div key={index} className="flex items-center justify-between bg-white p-2 rounded border">
+                                    <span className="font-medium">{extra.name}</span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-green-600 font-bold">{extra.price} lei</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newExtras = editForm.extras.filter((_, i) => i !== index);
+                                          setEditForm({...editForm, extras: newExtras});
+                                        }}
+                                        className="text-red-500 hover:text-red-700"
+                                      >
+                                        🗑️
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-gray-500 text-sm mb-3">Nu există extras pentru acest produs</p>
+                            )}
+                            
+                            {/* Formular adăugare extra nou */}
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                placeholder="Nume extra (ex: Mozzarella)"
+                                className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                                id={`extra-name-${product.id}`}
+                              />
+                              <input
+                                type="number"
+                                placeholder="Preț"
+                                min="0"
+                                step="0.5"
+                                className="w-24 px-3 py-2 border rounded-lg text-sm"
+                                id={`extra-price-${product.id}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const nameInput = document.getElementById(`extra-name-${product.id}`);
+                                  const priceInput = document.getElementById(`extra-price-${product.id}`);
+                                  
+                                  if (nameInput.value && priceInput.value) {
+                                    const newExtra = {
+                                      name: nameInput.value,
+                                      price: parseFloat(priceInput.value)
+                                    };
+                                    
+                                    const newExtras = [...(editForm.extras || []), newExtra];
+                                    setEditForm({...editForm, extras: newExtras});
+                                    
+                                    // Resetez câmpurile
+                                    nameInput.value = '';
+                                    priceInput.value = '';
+                                  } else {
+                                    setModal({ show: true, message: 'Completează numele și prețul pentru extra!', type: 'error' });
+                                  }
+                                }}
+                                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+                              >
+                                Adaugă
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </td>
