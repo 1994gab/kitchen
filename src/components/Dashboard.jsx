@@ -352,7 +352,7 @@ const Dashboard = ({ user, onLogout }) => {
 // Componenta pentru grid-ul de comenzi
 const OrderGrid = ({ orders, showActions, setShowModal }) => {
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 items-start">
+    <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 items-start">
       {orders.map((order, index) => (
         <SingleOrderCard 
           key={`card-${order.id}-${index}`} 
@@ -494,23 +494,56 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                                   <span className="bg-red-500 text-white font-bold px-3 py-1 rounded-full text-lg">
                                     {item.quantity}
                                   </span>
-                                  <div>
-                                    <span className="font-bold text-gray-800 text-lg">
-                                      {item.name}
-                                    </span>
-                                    {item.selectedSize && (
-                                      <span className="bg-yellow-200 text-yellow-800 font-bold text-sm px-2 py-1 rounded ml-2">
-                                        {item.selectedSize}
+                                  <div className="flex-1">
+                                    <div>
+                                      <span className="font-bold text-gray-800 text-lg">
+                                        {item.name}
                                       </span>
+                                      {item.selectedSize && (
+                                        <span className="bg-blue-200 text-blue-800 font-bold text-sm px-2 py-1 rounded ml-2">
+                                          {item.sizeLabel ? `${item.sizeLabel} (${item.selectedSize} cm)` : `${item.selectedSize} cm`}
+                                        </span>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Afișez extra dacă există */}
+                                    {item.selectedExtras && item.selectedExtras.length > 0 && (
+                                      <div className="mt-2 bg-orange-50 p-2 rounded">
+                                        <span className="text-xs font-semibold text-orange-700">EXTRA:</span>
+                                        <div className="mt-1 space-y-1">
+                                          {item.selectedExtras.map((extra, idx) => (
+                                            <div key={idx} className="flex items-center justify-between text-sm">
+                                              <span className="text-gray-700">
+                                                • {extra.name} 
+                                                <span className="text-orange-600 font-semibold ml-1">
+                                                  ×{extra.quantity}
+                                                </span>
+                                              </span>
+                                              <span className="text-gray-600">
+                                                {(extra.price * extra.quantity).toFixed(2)} lei
+                                              </span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
                                     )}
-                                    <div className="text-sm text-gray-600 mt-1">
-                                      {item.quantity} bucăți × {item.price} LEI = {item.subtotal} LEI
+                                    
+                                    {/* Detalii preț */}
+                                    <div className="text-sm text-gray-600 mt-2">
+                                      {item.quantity} × {item.price} lei = {item.productSubtotal || (item.quantity * item.price).toFixed(2)} lei
+                                      {item.extrasSubtotal > 0 && (
+                                        <span className="text-orange-600 ml-2">
+                                          + extra {item.extrasSubtotal} lei
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
-                                <span className="text-green-700 font-bold text-xl">
-                                  {item.subtotal} LEI
-                                </span>
+                                <div className="text-right">
+                                  <span className="text-green-700 font-bold text-xl">
+                                    {item.totalSubtotal || item.subtotal || (item.quantity * item.price).toFixed(2)} LEI
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           ))}
