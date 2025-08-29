@@ -11,17 +11,19 @@ const ProductsManager = () => {
   const [modal, setModal] = useState({ show: false, message: '', type: 'success' })
   const [countdown, setCountdown] = useState(0)
   const [showRefreshNotice, setShowRefreshNotice] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, productId: null, productName: '' })
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
     price: '',
     original_price: '',
     is_on_sale: false,
-    category: 'Pizza',
+    category: 'pizza',
     image: '/img/menu/1.jpg',
     ingredients: [],
     allergens: [],
-    extras: []
+    extras: [],
+    sizes: []
   })
 
   useEffect(() => {
@@ -87,7 +89,8 @@ const ProductsManager = () => {
       category: product.category || '',
       ingredients: ingredients,
       allergens: product.allergens || [],
-      extras: product.extras || []
+      extras: product.extras || [],
+      sizes: product.sizes || []
     })
   }
 
@@ -97,13 +100,24 @@ const ProductsManager = () => {
       const price = parseFloat(editForm.price) || 0;
       const originalPrice = parseFloat(editForm.original_price) || 0;
       
+      // Procesez sizes pentru a converti prețurile în numere
+      let processedSizes = null;
+      if (editForm.category && editForm.category.toLowerCase() === 'pizza' && editForm.sizes && editForm.sizes.length > 0) {
+        processedSizes = editForm.sizes.map(size => ({
+          ...size,
+          price: parseFloat(size.price) || 0
+        }));
+      }
+
       const { error } = await supabase
         .from('products')
         .update({
           ...editForm,
+          category: editForm.category.toLowerCase(), // Convertesc categoria la lowercase
           price: price,
           original_price: originalPrice,
           is_on_sale: originalPrice > price,
+          sizes: processedSizes,
           updated_at: new Date()
         })
         .eq('id', editingId)
@@ -129,24 +143,31 @@ const ProductsManager = () => {
     setEditForm({})
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Sigur vrei să ștergi acest produs?')) return
-    
+  const handleDelete = async () => {
     try {
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', id)
+        .eq('id', deleteConfirm.productId)
 
       if (error) throw error
       
-      setProducts(products.filter(p => p.id !== id))
+      setProducts(products.filter(p => p.id !== deleteConfirm.productId))
       setModal({ show: true, message: 'Produs șters cu succes!', type: 'success' })
       startCountdown()
+      setDeleteConfirm({ show: false, productId: null, productName: '' })
     } catch (error) {
       console.error('Error deleting product:', error)
       setModal({ show: true, message: 'Eroare la ștergere!', type: 'error' })
     }
+  }
+
+  const openDeleteConfirm = (product) => {
+    setDeleteConfirm({
+      show: true,
+      productId: product.id,
+      productName: product.name
+    })
   }
 
   const handleAddProduct = async () => {
@@ -160,10 +181,21 @@ const ProductsManager = () => {
         return
       }
 
+      // Procesez sizes pentru a converti prețurile în numere
+      let processedSizes = null;
+      if (newProduct.category && newProduct.category.toLowerCase() === 'pizza' && newProduct.sizes && newProduct.sizes.length > 0) {
+        processedSizes = newProduct.sizes.map(size => ({
+          ...size,
+          price: parseFloat(size.price) || 0
+        }));
+      }
+
       // Setez is_on_sale automat
       const productToAdd = {
         ...newProduct,
+        category: newProduct.category.toLowerCase(), // Convertesc categoria la lowercase
         price: price,
+        sizes: processedSizes,
         original_price: originalPrice,
         is_on_sale: originalPrice > price,
         created_at: new Date(),
@@ -269,6 +301,37 @@ const ProductsManager = () => {
       )}
 
       {/* Modal pentru notificări */}
+      {/* Modal confirmare ștergere */}
+      {deleteConfirm.show && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setDeleteConfirm({ show: false, productId: null, productName: '' })}></div>
+          <div className="relative bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
+            <div className="flex flex-col items-center">
+              <div className="text-red-500 text-5xl mb-4">⚠️</div>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Confirmare ștergere</h3>
+              <p className="text-gray-600 text-center mb-6">
+                Ești sigur că vrei să ștergi produsul <strong>{deleteConfirm.productName}</strong>?
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setDeleteConfirm({ show: false, productId: null, productName: '' })}
+                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors"
+                >
+                  Anulează
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+                >
+                  Șterge produsul
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal notificare */}
       {modal.show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setModal({ ...modal, show: false })}></div>
@@ -342,12 +405,12 @@ const ProductsManager = () => {
                   onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
                   className="w-full px-3 py-2 border rounded-lg"
                 >
-                  <option value="Pizza">Pizza</option>
-                  <option value="Pui">Pui</option>
-                  <option value="Burger">Burger</option>
-                  <option value="Salate">Salate</option>
-                  <option value="Desert">Desert</option>
-                  <option value="Băuturi">Băuturi</option>
+                  <option value="pizza">Pizza</option>
+                  <option value="pui">Pui</option>
+                  <option value="burger">Burger</option>
+                  <option value="salate">Salate</option>
+                  <option value="desert">Desert</option>
+                  <option value="bauturi">Băuturi</option>
                 </select>
               </div>
               <div>
@@ -448,6 +511,80 @@ const ProductsManager = () => {
                   placeholder="Ex: Gluten, Lactoză, Ouă, Muștar"
                 />
               </div>
+              
+              {/* Dimensiuni pentru Pizza */}
+              {newProduct.category && newProduct.category.toLowerCase() === 'pizza' && (
+                <div className="col-span-2 md:col-span-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">📏 Dimensiuni Pizza</label>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    {newProduct.sizes && newProduct.sizes.length > 0 ? (
+                      <div className="space-y-2 mb-3">
+                        {newProduct.sizes.map((size, index) => (
+                          <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border">
+                            <input
+                              type="text"
+                              value={size.size}
+                              onChange={(e) => {
+                                const newSizes = [...newProduct.sizes];
+                                newSizes[index].size = e.target.value;
+                                setNewProduct({...newProduct, sizes: newSizes});
+                              }}
+                              className="w-16 px-2 py-1 border rounded"
+                              placeholder="cm"
+                            />
+                            <span>cm</span>
+                            <input
+                              type="text"
+                              value={size.label}
+                              onChange={(e) => {
+                                const newSizes = [...newProduct.sizes];
+                                newSizes[index].label = e.target.value;
+                                setNewProduct({...newProduct, sizes: newSizes});
+                              }}
+                              className="flex-1 px-2 py-1 border rounded"
+                              placeholder="Nume (ex: Mică)"
+                            />
+                            <input
+                              type="text"
+                              value={size.price}
+                              onChange={(e) => {
+                                const newSizes = [...newProduct.sizes];
+                                newSizes[index].price = e.target.value;
+                                setNewProduct({...newProduct, sizes: newSizes});
+                              }}
+                              className="w-20 px-2 py-1 border rounded"
+                              placeholder="Preț"
+                            />
+                            <span>lei</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSizes = newProduct.sizes.filter((_, i) => i !== index);
+                                setNewProduct({...newProduct, sizes: newSizes});
+                              }}
+                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-gray-500 text-sm mb-2">Nu sunt dimensiuni adăugate</p>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSizes = [...(newProduct.sizes || []), { size: '', label: '', price: '' }];
+                        setNewProduct({...newProduct, sizes: newSizes});
+                      }}
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                    >
+                      + Adaugă dimensiune
+                    </button>
+                  </div>
+                </div>
+              )}
               
               {/* Extras pentru produs nou */}
               <div className="col-span-2 md:col-span-4">
@@ -590,12 +727,12 @@ const ProductsManager = () => {
                           onChange={(e) => setEditForm({...editForm, category: e.target.value})}
                           className="w-full px-2 py-1 border rounded"
                         >
-                          <option value="Pizza">Pizza</option>
-                          <option value="Pui">Pui</option>
-                          <option value="Burger">Burger</option>
-                          <option value="Salate">Salate</option>
-                          <option value="Desert">Desert</option>
-                          <option value="Băuturi">Băuturi</option>
+                          <option value="pizza">Pizza</option>
+                          <option value="pui">Pui</option>
+                          <option value="burger">Burger</option>
+                          <option value="salate">Salate</option>
+                          <option value="desert">Desert</option>
+                          <option value="bauturi">Băuturi</option>
                         </select>
                       </td>
                       <td className="px-4 py-3">
@@ -706,7 +843,7 @@ const ProductsManager = () => {
                           ✏️ Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => openDeleteConfirm(product)}
                           className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                         >
                           🗑️
@@ -806,6 +943,82 @@ const ProductsManager = () => {
                             placeholder="Ex: Gluten, Lactoză, Ouă, Muștar"
                           />
                         </div>
+                        
+                        {/* Dimensiuni pentru Pizza - EDITARE */}
+                        {editForm.category && editForm.category.toLowerCase() === 'pizza' && (
+                          <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              📏 Dimensiuni Pizza
+                            </label>
+                            <div className="bg-gray-50 p-3 rounded-lg">
+                              {editForm.sizes && editForm.sizes.length > 0 ? (
+                                <div className="space-y-2 mb-3">
+                                  {editForm.sizes.map((size, index) => (
+                                    <div key={index} className="flex items-center gap-2 bg-white p-2 rounded border">
+                                      <input
+                                        type="text"
+                                        value={size.size}
+                                        onChange={(e) => {
+                                          const newSizes = [...editForm.sizes];
+                                          newSizes[index].size = e.target.value;
+                                          setEditForm({...editForm, sizes: newSizes});
+                                        }}
+                                        className="w-16 px-2 py-1 border rounded"
+                                        placeholder="cm"
+                                      />
+                                      <span>cm</span>
+                                      <input
+                                        type="text"
+                                        value={size.label}
+                                        onChange={(e) => {
+                                          const newSizes = [...editForm.sizes];
+                                          newSizes[index].label = e.target.value;
+                                          setEditForm({...editForm, sizes: newSizes});
+                                        }}
+                                        className="flex-1 px-2 py-1 border rounded"
+                                        placeholder="Nume (ex: Mică)"
+                                      />
+                                      <input
+                                        type="text"
+                                        value={size.price}
+                                        onChange={(e) => {
+                                          const newSizes = [...editForm.sizes];
+                                          newSizes[index].price = e.target.value;
+                                          setEditForm({...editForm, sizes: newSizes});
+                                        }}
+                                        className="w-20 px-2 py-1 border rounded"
+                                        placeholder="Preț"
+                                      />
+                                      <span>lei</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const newSizes = editForm.sizes.filter((_, i) => i !== index);
+                                          setEditForm({...editForm, sizes: newSizes});
+                                        }}
+                                        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-gray-500 text-sm mb-2">Nu sunt dimensiuni adăugate</p>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newSizes = [...(editForm.sizes || []), { size: '', label: '', price: '' }];
+                                  setEditForm({...editForm, sizes: newSizes});
+                                }}
+                                className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+                              >
+                                + Adaugă dimensiune
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         
                         {/* Secțiune Extras */}
                         <div>
