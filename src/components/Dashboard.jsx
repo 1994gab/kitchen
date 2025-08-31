@@ -315,7 +315,7 @@ const Dashboard = ({ user, onLogout }) => {
                 {showModal.type === 'paid' ? '💰 Confirmă încasarea' : '❌ Confirmă respingerea'}
               </h3>
               <p className="text-gray-600 mb-6">
-                Ești sigur că vrei să marchezi comanda <strong>{showModal.order.order_number}</strong> ca {showModal.type === 'paid' ? 'încasată' : 'respinsă'}?
+                Ești sigur că vrei să marchezi comanda <strong>{showModal.order.order_number}</strong> ca {showModal.type === 'paid' ? 'acceptată' : 'respinsă'}?
               </p>
               
               {showModal.type === 'rejected' && (
@@ -406,7 +406,7 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                     : 'bg-gray-500 text-white'
                 }`}>
                   <div className="text-xs uppercase tracking-wide">
-                    {order.status === 'pending' ? 'NOUĂ' : order.status === 'paid' ? 'ÎNCASATĂ' : 'RESPINSĂ'}
+                    {order.status === 'pending' ? 'NOUĂ' : order.status === 'paid' ? 'ACCEPTATĂ' : 'RESPINSĂ'}
                   </div>
                   <div className="text-lg">
                     {order.status === 'pending' ? '🔴' : order.status === 'paid' ? '💰' : '❌'}
@@ -568,7 +568,7 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                           onClick={() => setShowModal({ type: 'paid', order })}
                           className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
                         >
-                          💰 ÎNCASATĂ
+                          ✅ ACCEPTĂ COMANDĂ
                         </button>
                         <button
                           onClick={() => setShowModal({ type: 'rejected', order })}
