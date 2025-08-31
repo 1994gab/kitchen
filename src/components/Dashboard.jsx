@@ -142,6 +142,9 @@ const Dashboard = ({ user, onLogout }) => {
 
   const updateOrderStatus = async (orderId, newStatus, rejectedReason = null) => {
     try {
+      // Găsesc comanda pentru a avea datele complete
+      const order = orders.find(o => o.id === orderId)
+      
       const updateData = { status: newStatus }
       if (rejectedReason) {
         updateData.rejected_reason = rejectedReason
@@ -153,6 +156,30 @@ const Dashboard = ({ user, onLogout }) => {
         .eq('id', orderId)
 
       if (error) throw error
+      
+      // Trimite SMS dacă comanda a fost acceptată
+      if (newStatus === 'paid' && order) {
+        try {
+          const { data: smsData, error: smsError } = await supabase.functions.invoke('send-sms', {
+            body: {
+              phone: order.customer_phone,
+              orderNumber: order.order_number,
+              items: order.items,
+              total: order.total,
+              type: 'accepted'
+            }
+          })
+          
+          if (smsError) {
+            console.error('Eroare trimitere SMS:', smsError)
+          } else {
+            console.log('SMS trimis cu succes:', smsData)
+          }
+        } catch (smsErr) {
+          console.error('Eroare la trimitere SMS:', smsErr)
+          // Nu oprim procesul dacă SMS-ul eșuează
+        }
+      }
       
       // Refresh orders
       fetchOrders()
@@ -312,11 +339,22 @@ const Dashboard = ({ user, onLogout }) => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
               <h3 className="text-lg font-bold mb-4">
-                {showModal.type === 'paid' ? '💰 Confirmă încasarea' : '❌ Confirmă respingerea'}
+                {showModal.type === 'paid' ? '✅ Confirmă acceptarea comenzii' : '❌ Confirmă respingerea'}
               </h3>
-              <p className="text-gray-600 mb-6">
-                Ești sigur că vrei să marchezi comanda <strong>{showModal.order.order_number}</strong> ca {showModal.type === 'paid' ? 'acceptată' : 'respinsă'}?
+              <p className="text-gray-600 mb-2">
+                Ești sigur că vrei să {showModal.type === 'paid' ? 'ACCEPȚI' : 'RESPINGI'} comanda <strong>{showModal.order.order_number}</strong>?
               </p>
+              
+              {showModal.type === 'paid' && (
+                <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4 mt-4">
+                  <p className="text-sm text-blue-700">
+                    📱 <strong>Clientul va primi SMS</strong> cu ora acceptării și timpul estimat de pregătire (30-50 minute)
+                  </p>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ⏱️ SMS-ul va ajunge la client în aproximativ 1-2 minute după ce apeși butonul de confirmare
+                  </p>
+                </div>
+              )}
               
               {showModal.type === 'rejected' && (
                 <div className="mb-4">
@@ -348,7 +386,7 @@ const Dashboard = ({ user, onLogout }) => {
                       : 'bg-red-500 hover:bg-red-600'
                   }`}
                 >
-                  {showModal.type === 'paid' ? 'Confirmă încasarea' : 'Confirmă respingerea'}
+                  {showModal.type === 'paid' ? 'Confirmă acceptarea' : 'Confirmă respingerea'}
                 </button>
               </div>
             </div>
