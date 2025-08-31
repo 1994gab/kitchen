@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import ProductsManager from './ProductsManager'
+import PromoManager from './PromoManager'
 
 const Dashboard = ({ user, onLogout }) => {
   const [orders, setOrders] = useState([])
@@ -215,6 +216,13 @@ const Dashboard = ({ user, onLogout }) => {
                 Bună, {user.username}!
               </span>
               <button
+                onClick={() => setActiveTab('promo')}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2 shadow-md"
+              >
+                <span>🎯</span>
+                <span className="font-medium">Promoție</span>
+              </button>
+              <button
                 onClick={() => setActiveTab('products')}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2 shadow-md"
               >
@@ -295,6 +303,8 @@ const Dashboard = ({ user, onLogout }) => {
           {activeTab === 'rejected' && <RejectedOrdersTab rejectedOrders={rejectedOrders} />}
           
           {activeTab === 'products' && <ProductsManager />}
+          
+          {activeTab === 'promo' && <PromoManager />}
         </div>
 
         {/* Modal pentru confirmare */}
