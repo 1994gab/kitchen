@@ -87,6 +87,7 @@ const ProductsManager = () => {
       original_price: product.original_price || 0,
       is_on_sale: product.is_on_sale || false,
       category: product.category || '',
+      image: product.image || '',
       ingredients: ingredients,
       allergens: product.allergens || [],
       extras: product.extras || [],
@@ -451,7 +452,7 @@ const ProductsManager = () => {
                 />
                 <div className="text-xs text-gray-500 mt-1 space-y-1">
                   <p>💡 <strong>Cum funcționează:</strong></p>
-                  <p className="ml-3">• Dacă Preț Vechi > Preț Nou → afișează reducere pe site</p>
+                  <p className="ml-3">• Dacă Preț Vechi  Preț Nou → afișează reducere pe site</p>
                   <p className="ml-3">• Dacă Preț Vechi ≤ Preț Nou → afișează preț normal</p>
                   <p className="ml-3">• Fără Preț Vechi → afișează preț normal</p>
                   <p className="mt-1">
@@ -470,6 +471,19 @@ const ProductsManager = () => {
                   rows="2"
                   placeholder="Descrierea produsului..."
                 />
+              </div>
+              <div className="col-span-2 md:col-span-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">🖼️ URL Imagine</label>
+                <input
+                  type="text"
+                  value={newProduct.image}
+                  onChange={(e) => setNewProduct({...newProduct, image: e.target.value})}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="/img/menu/pizza_1.jpg"
+                />
+                <div className="text-xs text-gray-500 mt-1">
+                  Exemplu: /img/menu/pizza_1.jpg, /img/menu/burger_1.jpg
+                </div>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ingrediente (separate cu virgulă)</label>
@@ -699,6 +713,7 @@ const ProductsManager = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
+                <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">#</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Nume</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Categorie</th>
                 <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Preț</th>
@@ -708,11 +723,14 @@ const ProductsManager = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredProducts.map(product => (
+              {filteredProducts.map((product, index) => (
                 <React.Fragment key={product.id}>
                   <tr className="hover:bg-gray-50">
                     {editingId === product.id ? (
                       <>
+                      <td className="px-4 py-3 text-center font-bold text-gray-600">
+                        {index + 1}
+                      </td>
                       <td className="px-4 py-3">
                         <input
                           type="text"
@@ -801,6 +819,9 @@ const ProductsManager = () => {
                     </>
                   ) : (
                     <>
+                      <td className="px-4 py-3 text-center font-bold text-gray-600">
+                        {index + 1}
+                      </td>
                       <td className="px-4 py-3 font-medium">{product.name}</td>
                       <td className="px-4 py-3">
                         <span className="px-2 py-1 bg-gray-100 rounded text-sm">
@@ -855,7 +876,7 @@ const ProductsManager = () => {
                 {/* Rând expandabil pentru ingredients și allergens când editez */}
                 {editingId === product.id && (
                   <tr className="bg-blue-50">
-                    <td colSpan="6" className="px-4 py-4">
+                    <td colSpan="7" className="px-4 py-4">
                       <div className="grid grid-cols-1 gap-4">
                         {/* Info despre prețul vechi */}
                         <div className="bg-blue-100 p-3 rounded-lg">
@@ -865,7 +886,7 @@ const ProductsManager = () => {
                             </p>
                             <div className="ml-4 space-y-1">
                               <p>
-                                ✅ <strong>Pentru reducere:</strong> Preț vechi > Preț nou
+                                ✅ <strong>Pentru reducere:</strong> Preț vechi  Preț nou
                                 <br />
                                 <span className="ml-4">Ex: Preț vechi 45 lei, Preț nou 35 lei → Pe site: </span>
                                 <span className="line-through">45 lei</span> 
@@ -898,6 +919,21 @@ const ProductsManager = () => {
                             rows="2"
                             placeholder="Descrierea produsului..."
                           />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            🖼️ URL Imagine
+                          </label>
+                          <input
+                            type="text"
+                            value={editForm.image || ''}
+                            onChange={(e) => setEditForm({...editForm, image: e.target.value})}
+                            className="w-full px-3 py-2 border rounded-lg"
+                            placeholder="/img/menu/pizza_1.jpg"
+                          />
+                          <div className="text-xs text-gray-500 mt-1">
+                            Exemplu: /img/menu/pizza_1.jpg, /img/menu/burger_1.jpg
+                          </div>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
