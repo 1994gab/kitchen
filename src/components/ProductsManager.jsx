@@ -549,6 +549,17 @@ const ProductsManager = () => {
                             <span>cm</span>
                             <input
                               type="text"
+                              value={size.weight || ''}
+                              onChange={(e) => {
+                                const newSizes = [...newProduct.sizes];
+                                newSizes[index].weight = e.target.value;
+                                setNewProduct({...newProduct, sizes: newSizes});
+                              }}
+                              className="w-20 px-2 py-1 border rounded"
+                              placeholder="Greutate"
+                            />
+                            <input
+                              type="text"
                               value={size.label}
                               onChange={(e) => {
                                 const newSizes = [...newProduct.sizes];
@@ -589,7 +600,7 @@ const ProductsManager = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        const newSizes = [...(newProduct.sizes || []), { size: '', label: '', price: '' }];
+                        const newSizes = [...(newProduct.sizes || []), { size: '', weight: '', label: '', price: '' }];
                         setNewProduct({...newProduct, sizes: newSizes});
                       }}
                       className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
@@ -1005,6 +1016,17 @@ const ProductsManager = () => {
                                       <span>cm</span>
                                       <input
                                         type="text"
+                                        value={size.weight || ''}
+                                        onChange={(e) => {
+                                          const newSizes = [...editForm.sizes];
+                                          newSizes[index].weight = e.target.value;
+                                          setEditForm({...editForm, sizes: newSizes});
+                                        }}
+                                        className="w-20 px-2 py-1 border rounded"
+                                        placeholder="Greutate"
+                                      />
+                                      <input
+                                        type="text"
                                         value={size.label}
                                         onChange={(e) => {
                                           const newSizes = [...editForm.sizes];
@@ -1045,7 +1067,7 @@ const ProductsManager = () => {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const newSizes = [...(editForm.sizes || []), { size: '', label: '', price: '' }];
+                                  const newSizes = [...(editForm.sizes || []), { size: '', weight: '', label: '', price: '' }];
                                   setEditForm({...editForm, sizes: newSizes});
                                 }}
                                 className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
