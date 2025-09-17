@@ -86,6 +86,9 @@ const ProductsManager = () => {
       price: product.price || 0,
       original_price: product.original_price || 0,
       is_on_sale: product.is_on_sale || false,
+      can_be_spicy: product.can_be_spicy || false,
+      has_free_sauces: product.has_free_sauces || false,
+      free_sauces_count: product.free_sauces_count || 0,
       category: product.category || '',
       image: product.image || '',
       ingredients: ingredients,
@@ -990,7 +993,61 @@ const ProductsManager = () => {
                             placeholder="Ex: Gluten, Lactoză, Ouă, Muștar"
                           />
                         </div>
-                        
+
+                        {/* Opțiune Picant - pentru toate produsele */}
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={editForm.can_be_spicy || false}
+                              onChange={(e) => setEditForm({...editForm, can_be_spicy: e.target.checked})}
+                              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span>🌶️ Poate fi comandat și în varianta picantă</span>
+                          </label>
+                          <div className="text-xs text-gray-500 ml-6 mt-1">
+                            Dacă bifezi, clienții vor putea alege între varianta normală și picantă
+                          </div>
+                        </div>
+
+                        {/* Opțiune Sosuri Gratuite - pentru toate produsele */}
+                        <div>
+                          <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <input
+                              type="checkbox"
+                              checked={editForm.has_free_sauces || false}
+                              onChange={(e) => setEditForm({
+                                ...editForm,
+                                has_free_sauces: e.target.checked,
+                                free_sauces_count: e.target.checked ? editForm.free_sauces_count || 1 : 0
+                              })}
+                              className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                            />
+                            <span>🎁 Oferă sosuri gratuite</span>
+                          </label>
+                          {editForm.has_free_sauces && (
+                            <div className="ml-6 mt-2">
+                              <label className="text-xs text-gray-600">
+                                Câte sosuri gratuite?
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="10"
+                                  value={editForm.free_sauces_count || 1}
+                                  onChange={(e) => setEditForm({
+                                    ...editForm,
+                                    free_sauces_count: parseInt(e.target.value) || 1
+                                  })}
+                                  className="ml-2 w-16 px-2 py-1 border rounded text-sm"
+                                />
+                              </label>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Clienții vor putea specifica ce sosuri doresc
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
                         {/* Dimensiuni pentru Pizza - EDITARE */}
                         {editForm.category && editForm.category.toLowerCase() === 'pizza' && (
                           <div className="mb-4">
