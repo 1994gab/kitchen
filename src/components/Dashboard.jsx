@@ -553,7 +553,26 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                                         </span>
                                       )}
                                     </div>
-                                    
+
+                                    {/* Afișez dacă e picant */}
+                                    {item.isSpicy && (
+                                      <div className="mt-2 inline-block">
+                                        <span className="bg-red-100 text-red-700 font-bold text-sm px-3 py-1 rounded-full">
+                                          🌶️ PICANT
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    {/* Afișez sosuri gratuite */}
+                                    {item.freeSaucesText && (
+                                      <div className="mt-2 bg-green-50 p-2 rounded border border-green-200">
+                                        <span className="text-xs font-semibold text-green-700">SOSURI GRATUITE:</span>
+                                        <p className="text-sm text-gray-700 mt-1">
+                                          🎁 {item.freeSaucesText}
+                                        </p>
+                                      </div>
+                                    )}
+
                                     {/* Afișez extra dacă există */}
                                     {item.selectedExtras && item.selectedExtras.length > 0 && (
                                       <div className="mt-2 bg-orange-50 p-2 rounded">
