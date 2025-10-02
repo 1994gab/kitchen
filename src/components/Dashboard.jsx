@@ -504,6 +504,37 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                       </div>
                     </div>
 
+                    {/* Metodă de plată */}
+                    {order.payment_method && (
+                      <div className={`rounded-lg p-4 border-l-4 ${
+                        order.payment_method === 'card'
+                          ? 'bg-purple-50 border-purple-400'
+                          : 'bg-green-50 border-green-400'
+                      }`}>
+                        <h4 className={`font-bold mb-2 flex items-center ${
+                          order.payment_method === 'card' ? 'text-purple-800' : 'text-green-800'
+                        }`}>
+                          💳 Metodă de plată
+                        </h4>
+                        <div className="flex items-center space-x-2">
+                          <span className={`text-2xl font-bold px-4 py-2 rounded-lg ${
+                            order.payment_method === 'card'
+                              ? 'bg-purple-200 text-purple-900'
+                              : 'bg-green-200 text-green-900'
+                          }`}>
+                            {order.payment_method === 'card' ? '💳 CARD (POS)' : '💵 NUMERAR'}
+                          </span>
+                        </div>
+                        <p className={`text-xs mt-2 ${
+                          order.payment_method === 'card' ? 'text-purple-700' : 'text-green-700'
+                        }`}>
+                          {order.payment_method === 'card'
+                            ? 'Pregătește POS-ul pentru plată cu cardul la livrare'
+                            : 'Plata se va face în numerar la livrare'}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Notițe dacă există */}
                     {order.customer_notes && (
                       <div className="bg-yellow-50 rounded-lg p-3 border-l-4 border-yellow-400">
