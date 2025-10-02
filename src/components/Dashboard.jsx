@@ -37,9 +37,9 @@ const Dashboard = ({ user, onLogout }) => {
             // Adaug comanda nouă la lista existentă
             setOrders(prevOrders => [payload.new, ...prevOrders])
             
-            // Arăt notificare pentru comandă nouă
+            // Arăt notificare pentru comandă nouă (10 secunde - cât durează sunetul)
             setNewOrderNotification(payload.new)
-            setTimeout(() => setNewOrderNotification(null), 5000)
+            setTimeout(() => setNewOrderNotification(null), 10000)
             
             // Sunet telefon clasic cu furcă - RRRRING RRRRING (mai tare și mai lung)
             try {
