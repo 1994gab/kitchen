@@ -41,54 +41,56 @@ const Dashboard = ({ user, onLogout }) => {
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 5000)
             
-            // Sunet telefon clasic cu furcă - RRRRING RRRRING
+            // Sunet telefon clasic cu furcă - RRRRING RRRRING (mai tare și mai lung)
             try {
               const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-              
+
               const playClassicRing = (startTime) => {
                 // Două frecvențe pentru sunetul clasic de telefon
                 const osc1 = audioContext.createOscillator()
                 const osc2 = audioContext.createOscillator()
                 const gainNode = audioContext.createGain()
-                
+
                 osc1.connect(gainNode)
                 osc2.connect(gainNode)
                 gainNode.connect(audioContext.destination)
-                
+
                 // Frecvențele clasice de telefon: 440Hz și 480Hz cu modulare
                 osc1.frequency.setValueAtTime(440, startTime)
                 osc2.frequency.setValueAtTime(480, startTime)
                 osc1.type = 'sine'
                 osc2.type = 'sine'
-                
+
                 // Trillul clasic - vibrația care face RRRRR
                 const tremolo = audioContext.createOscillator()
                 const tremoloGain = audioContext.createGain()
                 tremolo.frequency.setValueAtTime(25, startTime) // 25Hz tremolo
                 tremolo.connect(tremoloGain.gain)
                 tremoloGain.gain.setValueAtTime(0.3, startTime)
-                
+
                 gainNode.connect(tremoloGain)
                 tremoloGain.connect(audioContext.destination)
-                
-                // Envelope pentru ring-ul complet
+
+                // Envelope pentru ring-ul complet - MAI TARE și MAI LUNG
                 gainNode.gain.setValueAtTime(0, startTime)
-                gainNode.gain.linearRampToValueAtTime(0.4, startTime + 0.1)
-                gainNode.gain.setValueAtTime(0.4, startTime + 1.0)
-                gainNode.gain.linearRampToValueAtTime(0, startTime + 1.2)
-                
+                gainNode.gain.linearRampToValueAtTime(0.7, startTime + 0.1) // Crescut de la 0.4 la 0.7
+                gainNode.gain.setValueAtTime(0.7, startTime + 2.0) // Durata crescută de la 1.0 la 2.0
+                gainNode.gain.linearRampToValueAtTime(0, startTime + 2.3) // Durata totală: 2.3 secunde
+
                 osc1.start(startTime)
-                osc1.stop(startTime + 1.2)
+                osc1.stop(startTime + 2.3)
                 osc2.start(startTime)
-                osc2.stop(startTime + 1.2)
+                osc2.stop(startTime + 2.3)
                 tremolo.start(startTime)
-                tremolo.stop(startTime + 1.2)
+                tremolo.stop(startTime + 2.3)
               }
-              
-              // Două ring-uri clasice cu pauză
+
+              // Patru ring-uri clasice cu pauză (dublat de la 2 la 4)
               playClassicRing(audioContext.currentTime)
-              playClassicRing(audioContext.currentTime + 1.5)
-              
+              playClassicRing(audioContext.currentTime + 2.5)
+              playClassicRing(audioContext.currentTime + 5.0)
+              playClassicRing(audioContext.currentTime + 7.5)
+
             } catch (e) {
               console.log('Nu s-a putut reda sunetul:', e)
             }
