@@ -151,41 +151,71 @@ const Dashboard = ({ user, onLogout }) => {
 
             // VARIANTA 2: HTML5 Audio cu fișier local (mai fiabil pentru autoplay)
             try {
-              console.log('🔔 Încerc să redau sunetul...')
-              setDebugMessage('🔔 Încerc să redau sunetul...')
+              console.log('🔔 STEP 1: Încerc să redau sunetul...')
+              setDebugMessage('🔔 STEP 1: Start')
 
               // Sunet telefon fix clasic cu furcă
+              console.log('🔔 STEP 2: Creez obiect Audio')
+              setDebugMessage('🔔 STEP 2: Creez Audio')
+
               const audio = new Audio('/sounds/phone-ring.mp3')
               audio.volume = 1.0
 
+              console.log('🔔 STEP 3: Audio creat, setez listeners')
+              setDebugMessage('🔔 STEP 3: Setez listeners')
+
               // Log când fișierul se încarcă
               audio.addEventListener('loadeddata', () => {
-                console.log('📥 Fișier audio încărcat cu succes')
-                setDebugMessage('📥 Fișier încărcat')
+                console.log('📥 STEP 4: Fișier audio încărcat cu succes')
+                setDebugMessage('📥 STEP 4: Fișier încărcat')
+              })
+
+              audio.addEventListener('canplay', () => {
+                console.log('🎵 STEP 5: Audio ready to play')
+                setDebugMessage('🎵 STEP 5: Ready to play')
+              })
+
+              audio.addEventListener('playing', () => {
+                console.log('▶️ STEP 6: Audio PLAYING NOW!')
+                setDebugMessage('▶️ STEP 6: SE REDĂ ACUM!')
+              })
+
+              audio.addEventListener('ended', () => {
+                console.log('🏁 STEP 7: Audio finished')
+                setDebugMessage('🏁 STEP 7: S-a terminat')
               })
 
               audio.addEventListener('error', (e) => {
-                console.error('❌ Eroare la încărcarea fișierului audio:', e)
-                setDebugMessage('❌ Eroare la încărcare!')
+                console.error('❌ ERROR: La încărcarea fișierului:', e)
+                setDebugMessage(`❌ ERROR: ${e.type}`)
               })
+
+              console.log('🔔 STEP 8: Apelez audio.play()...')
+              setDebugMessage('🔔 STEP 8: Apelez play()')
 
               const playPromise = audio.play()
 
+              console.log('🔔 STEP 9: play() returnat, tip:', typeof playPromise)
+              setDebugMessage('🔔 STEP 9: play() returnat')
+
               if (playPromise !== undefined) {
+                console.log('🔔 STEP 10: playPromise există, aștept...')
+                setDebugMessage('🔔 STEP 10: Aștept promise')
+
                 playPromise.then(() => {
-                  console.log('✅ Sunet redat cu succes!')
-                  setDebugMessage('✅ Sunet REDAT!')
-                  // Timeout scos pentru debugging
+                  console.log('✅ STEP 11: Promise resolved - SUCCESS!')
+                  setDebugMessage('✅ STEP 11: SUCCESS!')
                 }).catch(err => {
-                  console.error('❌ Nu s-a putut reda sunetul:', err.name, err.message)
-                  setDebugMessage(`❌ NU sună: ${err.name}`)
-                  // Timeout scos pentru debugging
+                  console.error('❌ STEP 11: Promise rejected:', err.name, err.message)
+                  setDebugMessage(`❌ STEP 11: ${err.name}`)
                 })
+              } else {
+                console.warn('⚠️ STEP 10: playPromise e undefined!')
+                setDebugMessage('⚠️ STEP 10: undefined!')
               }
             } catch (e) {
-              console.error('❌ Eroare la încărcarea sunetului:', e)
-              setDebugMessage('❌ Eroare generală!')
-              // Timeout scos pentru debugging
+              console.error('❌ CATCH: Eroare generală:', e)
+              setDebugMessage(`❌ CATCH: ${e.message}`)
             }
             
             // Notificare browser (opțional)
@@ -366,7 +396,7 @@ const Dashboard = ({ user, onLogout }) => {
             </h1>
             <div className="flex items-center space-x-4">
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-                v2.2.0
+                v2.3.0
               </span>
               {debugMessage && (
                 <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 px-4 py-2 rounded-lg font-bold text-sm">
