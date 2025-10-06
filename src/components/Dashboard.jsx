@@ -21,6 +21,7 @@ const Dashboard = ({ user, onLogout }) => {
   })
   const [isProcessingOrder, setIsProcessingOrder] = useState(false)
   const [debugMessage, setDebugMessage] = useState('')
+  const [showReactivateAudio, setShowReactivateAudio] = useState(false)
 
   useEffect(() => {
     fetchOrders()
@@ -54,6 +55,16 @@ const Dashboard = ({ user, onLogout }) => {
     const handleVisibilityChange = async () => {
       if (document.visibilityState === 'visible') {
         requestWakeLock()
+
+        // Dacă sunetele au fost activate și tab-ul devine vizibil, arată banner de reactivare
+        const audioActivated = localStorage.getItem('audioActivatedDate')
+        const today = new Date().toDateString()
+        if (audioActivated === today && audioContextReady) {
+          setShowReactivateAudio(true)
+        }
+      } else {
+        // Tab-ul a devenit inactiv
+        setShowReactivateAudio(false)
       }
     }
 
@@ -89,9 +100,9 @@ const Dashboard = ({ user, onLogout }) => {
             // Adaug comanda nouă la lista existentă
             setOrders(prevOrders => [payload.new, ...prevOrders])
 
-            // Notificare dezactivată temporar pentru debugging
-            // setNewOrderNotification(payload.new)
-            // setTimeout(() => setNewOrderNotification(null), 10000)
+            // Arăt notificare pentru comandă nouă (10 secunde)
+            setNewOrderNotification(payload.new)
+            setTimeout(() => setNewOrderNotification(null), 10000)
 
             // VARIANTA 1: Web Audio API (comentat temporar - uneori probleme cu autoplay)
             /*
@@ -258,6 +269,7 @@ const Dashboard = ({ user, onLogout }) => {
       }
       setAudioContextReady(true)
       setShowAudioButton(false) // Ascunde butonul după activare
+      setShowReactivateAudio(false) // Ascunde banner-ul de reactivare
 
       // Salvează data de ASTĂZI în localStorage
       const today = new Date().toDateString()
@@ -372,6 +384,24 @@ const Dashboard = ({ user, onLogout }) => {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {/* Banner reactivare audio când tab-ul devine activ */}
+      {showReactivateAudio && (
+        <div className="fixed top-0 left-0 right-0 z-[10000] bg-orange-500 text-white p-4 shadow-lg">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-2xl">⚠️</span>
+              <span className="font-bold text-lg">Tab-ul a fost inactiv - Apasă pentru reactivare sunete</span>
+            </div>
+            <button
+              onClick={activateAudio}
+              className="bg-white text-orange-500 px-6 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors animate-pulse"
+            >
+              🔔 REACTIVEAZĂ SUNETE
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Notificare comandă nouă */}
       {newOrderNotification && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
@@ -396,7 +426,7 @@ const Dashboard = ({ user, onLogout }) => {
             </h1>
             <div className="flex items-center space-x-4">
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-                v2.3.0
+                v2.4.0
               </span>
               {debugMessage && (
                 <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 px-4 py-2 rounded-lg font-bold text-sm">
