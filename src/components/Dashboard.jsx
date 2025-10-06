@@ -11,7 +11,14 @@ const Dashboard = ({ user, onLogout }) => {
   const [newOrderNotification, setNewOrderNotification] = useState(null)
   const [wakeLock, setWakeLock] = useState(null)
   const [audioContextReady, setAudioContextReady] = useState(false)
-  const [showAudioButton, setShowAudioButton] = useState(true)
+  const [showAudioButton, setShowAudioButton] = useState(() => {
+    // Verifică în localStorage dacă sunetele au fost activate ASTĂZI
+    const audioActivatedDate = localStorage.getItem('audioActivatedDate')
+    const today = new Date().toDateString() // Ex: "Mon Jan 06 2025"
+
+    // Arată butonul dacă nu a fost activat astăzi
+    return audioActivatedDate !== today
+  })
 
   useEffect(() => {
     fetchOrders()
@@ -199,6 +206,11 @@ const Dashboard = ({ user, onLogout }) => {
       }
       setAudioContextReady(true)
       setShowAudioButton(false) // Ascunde butonul după activare
+
+      // Salvează data de ASTĂZI în localStorage
+      const today = new Date().toDateString()
+      localStorage.setItem('audioActivatedDate', today)
+
       console.log('✅ AudioContext activat - sunetele vor funcționa!')
     } catch (err) {
       console.error('❌ Nu s-a putut activa AudioContext:', err)
