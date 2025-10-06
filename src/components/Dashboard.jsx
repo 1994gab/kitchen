@@ -150,9 +150,20 @@ const Dashboard = ({ user, onLogout }) => {
 
             // VARIANTA 2: HTML5 Audio cu fișier local (mai fiabil pentru autoplay)
             try {
+              console.log('🔔 Încerc să redau sunetul...')
+
               // Sunet telefon fix clasic cu furcă
               const audio = new Audio('/sounds/phone-ring.mp3')
               audio.volume = 1.0
+
+              // Log când fișierul se încarcă
+              audio.addEventListener('loadeddata', () => {
+                console.log('📥 Fișier audio încărcat cu succes')
+              })
+
+              audio.addEventListener('error', (e) => {
+                console.error('❌ Eroare la încărcarea fișierului audio:', e)
+              })
 
               const playPromise = audio.play()
 
@@ -160,7 +171,8 @@ const Dashboard = ({ user, onLogout }) => {
                 playPromise.then(() => {
                   console.log('✅ Sunet redat cu succes!')
                 }).catch(err => {
-                  console.error('❌ Nu s-a putut reda sunetul:', err)
+                  console.error('❌ Nu s-a putut reda sunetul:', err.name, err.message)
+                  console.error('❌ Posibil motiv: AudioContext suspendat sau autoplay blocat')
                 })
               }
             } catch (e) {
