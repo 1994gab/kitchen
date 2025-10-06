@@ -140,15 +140,23 @@ const Dashboard = ({ user, onLogout }) => {
             }
             */
 
-            // VARIANTA 2: HTML5 Audio cu fișier (mai fiabil pentru autoplay)
+            // VARIANTA 2: HTML5 Audio cu fișier local (mai fiabil pentru autoplay)
             try {
-              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+              // Sunet telefon fix clasic cu furcă
+              const audio = new Audio('/sounds/phone-ring.mp3')
               audio.volume = 1.0
-              audio.play().catch(err => {
-                console.log('Nu s-a putut reda sunetul (HTML5 Audio):', err)
-              })
+
+              const playPromise = audio.play()
+
+              if (playPromise !== undefined) {
+                playPromise.then(() => {
+                  console.log('✅ Sunet redat cu succes!')
+                }).catch(err => {
+                  console.error('❌ Nu s-a putut reda sunetul:', err)
+                })
+              }
             } catch (e) {
-              console.log('Eroare la încărcarea sunetului:', e)
+              console.error('❌ Eroare la încărcarea sunetului:', e)
             }
             
             // Notificare browser (opțional)
