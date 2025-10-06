@@ -26,6 +26,13 @@ const Dashboard = ({ user, onLogout }) => {
   useEffect(() => {
     fetchOrders()
 
+    // Verifică dacă sunetele au fost activate astăzi
+    const audioActivated = localStorage.getItem('audioActivatedDate')
+    const today = new Date().toDateString()
+    if (audioActivated === today) {
+      setAudioContextReady(true) // Marchează că sunetele au fost activate astăzi
+    }
+
     // Cer permisiune pentru notificări browser
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()
