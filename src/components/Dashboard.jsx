@@ -89,9 +89,9 @@ const Dashboard = ({ user, onLogout }) => {
             // Adaug comanda nouă la lista existentă
             setOrders(prevOrders => [payload.new, ...prevOrders])
 
-            // Arăt notificare pentru comandă nouă (10 secunde - cât durează sunetul)
-            setNewOrderNotification(payload.new)
-            setTimeout(() => setNewOrderNotification(null), 10000)
+            // Notificare dezactivată temporar pentru debugging
+            // setNewOrderNotification(payload.new)
+            // setTimeout(() => setNewOrderNotification(null), 10000)
 
             // VARIANTA 1: Web Audio API (comentat temporar - uneori probleme cu autoplay)
             /*
@@ -175,17 +175,17 @@ const Dashboard = ({ user, onLogout }) => {
                 playPromise.then(() => {
                   console.log('✅ Sunet redat cu succes!')
                   setDebugMessage('✅ Sunet REDAT!')
-                  setTimeout(() => setDebugMessage(''), 3000)
+                  // Timeout scos pentru debugging
                 }).catch(err => {
                   console.error('❌ Nu s-a putut reda sunetul:', err.name, err.message)
                   setDebugMessage(`❌ NU sună: ${err.name}`)
-                  setTimeout(() => setDebugMessage(''), 5000)
+                  // Timeout scos pentru debugging
                 })
               }
             } catch (e) {
               console.error('❌ Eroare la încărcarea sunetului:', e)
               setDebugMessage('❌ Eroare generală!')
-              setTimeout(() => setDebugMessage(''), 5000)
+              // Timeout scos pentru debugging
             }
             
             // Notificare browser (opțional)
@@ -366,7 +366,7 @@ const Dashboard = ({ user, onLogout }) => {
             </h1>
             <div className="flex items-center space-x-4">
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
-                v2.1.0
+                v2.2.0
               </span>
               {debugMessage && (
                 <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 px-4 py-2 rounded-lg font-bold text-sm">
