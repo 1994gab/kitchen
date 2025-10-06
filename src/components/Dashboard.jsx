@@ -9,13 +9,74 @@ const Dashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('today')
   const [showModal, setShowModal] = useState(null)
   const [newOrderNotification, setNewOrderNotification] = useState(null)
+  const [wakeLock, setWakeLock] = useState(null)
+  const [audioContextReady, setAudioContextReady] = useState(false)
 
   useEffect(() => {
     fetchOrders()
-    
+
     // Cer permisiune pentru notificări browser
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission()
+    }
+
+    // Activez Wake Lock pentru a ține ecranul activ
+    const requestWakeLock = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          const lock = await navigator.wakeLock.request('screen')
+          setWakeLock(lock)
+          console.log('Wake Lock activat - ecranul va rămâne activ')
+
+          // Re-activez Wake Lock dacă se eliberează (ex: utilizatorul schimbă tab-ul)
+          lock.addEventListener('release', () => {
+            console.log('Wake Lock eliberat')
+          })
+        }
+      } catch (err) {
+        console.error('Wake Lock nu a putut fi activat:', err)
+      }
+    }
+
+    requestWakeLock()
+
+    // Re-activez Wake Lock când pagina devine vizibilă din nou
+    const handleVisibilityChange = async () => {
+      if (document.visibilityState === 'visible') {
+        requestWakeLock()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // Activez AudioContext la primul click pe pagină (pentru autoplay policy)
+    const activateAudioOnFirstClick = async () => {
+      if (!audioContextReady) {
+        try {
+          const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume()
+          }
+          setAudioContextReady(true)
+          console.log('AudioContext activat - sunetele vor funcționa!')
+          // Elimină listener-ul după prima activare
+          document.removeEventListener('click', activateAudioOnFirstClick)
+        } catch (err) {
+          console.error('Nu s-a putut activa AudioContext:', err)
+        }
+      }
+    }
+
+    document.addEventListener('click', activateAudioOnFirstClick)
+
+    // Cleanup
+    return () => {
+      if (wakeLock) {
+        wakeLock.release()
+        console.log('Wake Lock dezactivat')
+      }
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      document.removeEventListener('click', activateAudioOnFirstClick)
     }
   }, [])
 
@@ -31,19 +92,24 @@ const Dashboard = ({ user, onLogout }) => {
             }
           }
         })
-        .on('postgres_changes', 
+        .on('postgres_changes',
           { event: 'INSERT', schema: 'public', table: 'orders' },
-          (payload) => {
+          async (payload) => {
             // Adaug comanda nouă la lista existentă
             setOrders(prevOrders => [payload.new, ...prevOrders])
-            
+
             // Arăt notificare pentru comandă nouă (10 secunde - cât durează sunetul)
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 10000)
-            
+
             // Sunet telefon clasic cu furcă - RRRRING RRRRING (mai tare și mai lung)
             try {
               const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+
+              // IMPORTANT: Resume AudioContext dacă e suspendat (pentru autoplay policy)
+              if (audioContext.state === 'suspended') {
+                await audioContext.resume()
+              }
 
               const playClassicRing = (startTime) => {
                 // Două frecvențe pentru sunetul clasic de telefon
