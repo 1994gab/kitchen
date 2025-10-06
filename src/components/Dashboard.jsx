@@ -11,6 +11,7 @@ const Dashboard = ({ user, onLogout }) => {
   const [newOrderNotification, setNewOrderNotification] = useState(null)
   const [wakeLock, setWakeLock] = useState(null)
   const [audioContextReady, setAudioContextReady] = useState(false)
+  const [showAudioButton, setShowAudioButton] = useState(true)
 
   useEffect(() => {
     fetchOrders()
@@ -49,25 +50,7 @@ const Dashboard = ({ user, onLogout }) => {
 
     document.addEventListener('visibilitychange', handleVisibilityChange)
 
-    // Activez AudioContext la primul click pe pagină (pentru autoplay policy)
-    const activateAudioOnFirstClick = async () => {
-      if (!audioContextReady) {
-        try {
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)()
-          if (audioContext.state === 'suspended') {
-            await audioContext.resume()
-          }
-          setAudioContextReady(true)
-          console.log('AudioContext activat - sunetele vor funcționa!')
-          // Elimină listener-ul după prima activare
-          document.removeEventListener('click', activateAudioOnFirstClick)
-        } catch (err) {
-          console.error('Nu s-a putut activa AudioContext:', err)
-        }
-      }
-    }
-
-    document.addEventListener('click', activateAudioOnFirstClick)
+    // Nu mai folosim click listener automat
 
     // Cleanup
     return () => {
@@ -76,7 +59,6 @@ const Dashboard = ({ user, onLogout }) => {
         console.log('Wake Lock dezactivat')
       }
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      document.removeEventListener('click', activateAudioOnFirstClick)
     }
   }, [])
 
@@ -191,6 +173,22 @@ const Dashboard = ({ user, onLogout }) => {
 
     return () => clearTimeout(timer)
   }, [user])
+
+  // Funcție pentru activarea manuală a sunetelor
+  const activateAudio = async () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume()
+      }
+      setAudioContextReady(true)
+      setShowAudioButton(false) // Ascunde butonul după activare
+      console.log('✅ AudioContext activat - sunetele vor funcționa!')
+    } catch (err) {
+      console.error('❌ Nu s-a putut activa AudioContext:', err)
+      alert('Nu s-au putut activa sunetele. Încearcă din nou.')
+    }
+  }
 
   const fetchOrders = async () => {
     try {
@@ -310,6 +308,15 @@ const Dashboard = ({ user, onLogout }) => {
               <span className="text-gray-600">
                 Bună, {user.username}!
               </span>
+              {showAudioButton && (
+                <button
+                  onClick={activateAudio}
+                  className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2 shadow-md animate-pulse"
+                >
+                  <span>🔔</span>
+                  <span className="font-medium">Activează sunete</span>
+                </button>
+              )}
               <button
                 onClick={() => setActiveTab('promo')}
                 className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg transition-all transform hover:scale-105 flex items-center space-x-2 shadow-md"
