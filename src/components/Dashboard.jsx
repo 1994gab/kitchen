@@ -84,7 +84,8 @@ const Dashboard = ({ user, onLogout }) => {
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 10000)
 
-            // Sunet telefon clasic cu furcă - RRRRING RRRRING (mai tare și mai lung)
+            // VARIANTA 1: Web Audio API (comentat temporar - uneori probleme cu autoplay)
+            /*
             try {
               const audioContext = new (window.AudioContext || window.webkitAudioContext)()
 
@@ -94,7 +95,6 @@ const Dashboard = ({ user, onLogout }) => {
               }
 
               const playClassicRing = (startTime) => {
-                // Două frecvențe pentru sunetul clasic de telefon
                 const osc1 = audioContext.createOscillator()
                 const osc2 = audioContext.createOscillator()
                 const gainNode = audioContext.createGain()
@@ -103,27 +103,24 @@ const Dashboard = ({ user, onLogout }) => {
                 osc2.connect(gainNode)
                 gainNode.connect(audioContext.destination)
 
-                // Frecvențele clasice de telefon: 440Hz și 480Hz cu modulare
                 osc1.frequency.setValueAtTime(440, startTime)
                 osc2.frequency.setValueAtTime(480, startTime)
                 osc1.type = 'sine'
                 osc2.type = 'sine'
 
-                // Trillul clasic - vibrația care face RRRRR
                 const tremolo = audioContext.createOscillator()
                 const tremoloGain = audioContext.createGain()
-                tremolo.frequency.setValueAtTime(25, startTime) // 25Hz tremolo
+                tremolo.frequency.setValueAtTime(25, startTime)
                 tremolo.connect(tremoloGain.gain)
                 tremoloGain.gain.setValueAtTime(0.3, startTime)
 
                 gainNode.connect(tremoloGain)
                 tremoloGain.connect(audioContext.destination)
 
-                // Envelope pentru ring-ul complet - MAI TARE și MAI LUNG
                 gainNode.gain.setValueAtTime(0, startTime)
-                gainNode.gain.linearRampToValueAtTime(0.7, startTime + 0.1) // Crescut de la 0.4 la 0.7
-                gainNode.gain.setValueAtTime(0.7, startTime + 2.0) // Durata crescută de la 1.0 la 2.0
-                gainNode.gain.linearRampToValueAtTime(0, startTime + 2.3) // Durata totală: 2.3 secunde
+                gainNode.gain.linearRampToValueAtTime(0.7, startTime + 0.1)
+                gainNode.gain.setValueAtTime(0.7, startTime + 2.0)
+                gainNode.gain.linearRampToValueAtTime(0, startTime + 2.3)
 
                 osc1.start(startTime)
                 osc1.stop(startTime + 2.3)
@@ -133,14 +130,25 @@ const Dashboard = ({ user, onLogout }) => {
                 tremolo.stop(startTime + 2.3)
               }
 
-              // Patru ring-uri clasice cu pauză (dublat de la 2 la 4)
               playClassicRing(audioContext.currentTime)
               playClassicRing(audioContext.currentTime + 2.5)
               playClassicRing(audioContext.currentTime + 5.0)
               playClassicRing(audioContext.currentTime + 7.5)
 
             } catch (e) {
-              console.log('Nu s-a putut reda sunetul:', e)
+              console.log('Nu s-a putut reda sunetul (Web Audio API):', e)
+            }
+            */
+
+            // VARIANTA 2: HTML5 Audio cu fișier (mai fiabil pentru autoplay)
+            try {
+              const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+              audio.volume = 1.0
+              audio.play().catch(err => {
+                console.log('Nu s-a putut reda sunetul (HTML5 Audio):', err)
+              })
+            } catch (e) {
+              console.log('Eroare la încărcarea sunetului:', e)
             }
             
             // Notificare browser (opțional)
