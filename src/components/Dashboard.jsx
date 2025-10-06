@@ -20,6 +20,7 @@ const Dashboard = ({ user, onLogout }) => {
     return audioActivatedDate !== today
   })
   const [isProcessingOrder, setIsProcessingOrder] = useState(false)
+  const [debugMessage, setDebugMessage] = useState('')
 
   useEffect(() => {
     fetchOrders()
@@ -151,6 +152,7 @@ const Dashboard = ({ user, onLogout }) => {
             // VARIANTA 2: HTML5 Audio cu fișier local (mai fiabil pentru autoplay)
             try {
               console.log('🔔 Încerc să redau sunetul...')
+              setDebugMessage('🔔 Încerc să redau sunetul...')
 
               // Sunet telefon fix clasic cu furcă
               const audio = new Audio('/sounds/phone-ring.mp3')
@@ -159,10 +161,12 @@ const Dashboard = ({ user, onLogout }) => {
               // Log când fișierul se încarcă
               audio.addEventListener('loadeddata', () => {
                 console.log('📥 Fișier audio încărcat cu succes')
+                setDebugMessage('📥 Fișier încărcat')
               })
 
               audio.addEventListener('error', (e) => {
                 console.error('❌ Eroare la încărcarea fișierului audio:', e)
+                setDebugMessage('❌ Eroare la încărcare!')
               })
 
               const playPromise = audio.play()
@@ -170,13 +174,18 @@ const Dashboard = ({ user, onLogout }) => {
               if (playPromise !== undefined) {
                 playPromise.then(() => {
                   console.log('✅ Sunet redat cu succes!')
+                  setDebugMessage('✅ Sunet REDAT!')
+                  setTimeout(() => setDebugMessage(''), 3000)
                 }).catch(err => {
                   console.error('❌ Nu s-a putut reda sunetul:', err.name, err.message)
-                  console.error('❌ Posibil motiv: AudioContext suspendat sau autoplay blocat')
+                  setDebugMessage(`❌ NU sună: ${err.name}`)
+                  setTimeout(() => setDebugMessage(''), 5000)
                 })
               }
             } catch (e) {
               console.error('❌ Eroare la încărcarea sunetului:', e)
+              setDebugMessage('❌ Eroare generală!')
+              setTimeout(() => setDebugMessage(''), 5000)
             }
             
             // Notificare browser (opțional)
@@ -356,6 +365,14 @@ const Dashboard = ({ user, onLogout }) => {
               🍗 Chicken and Pizza - Bucătărie
             </h1>
             <div className="flex items-center space-x-4">
+              <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
+                v2.1.0
+              </span>
+              {debugMessage && (
+                <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 px-4 py-2 rounded-lg font-bold text-sm">
+                  {debugMessage}
+                </div>
+              )}
               <span className="text-gray-600">
                 Bună, {user.username}!
               </span>
