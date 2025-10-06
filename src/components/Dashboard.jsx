@@ -19,6 +19,7 @@ const Dashboard = ({ user, onLogout }) => {
     // Arată butonul dacă nu a fost activat astăzi
     return audioActivatedDate !== today
   })
+  const [isProcessingOrder, setIsProcessingOrder] = useState(false)
 
   useEffect(() => {
     fetchOrders()
@@ -235,10 +236,18 @@ const Dashboard = ({ user, onLogout }) => {
   }
 
   const updateOrderStatus = async (orderId, newStatus, rejectedReason = null) => {
+    // Previne click-uri multiple
+    if (isProcessingOrder) {
+      console.log('⚠️ Comanda se procesează deja, te rog așteaptă...')
+      return
+    }
+
     try {
+      setIsProcessingOrder(true) // Blochează butoanele
+
       // Găsesc comanda pentru a avea datele complete
       const order = orders.find(o => o.id === orderId)
-      
+
       const updateData = { status: newStatus }
       if (rejectedReason) {
         updateData.rejected_reason = rejectedReason
@@ -250,7 +259,7 @@ const Dashboard = ({ user, onLogout }) => {
         .eq('id', orderId)
 
       if (error) throw error
-      
+
       // Trimite SMS dacă comanda a fost acceptată
       if (newStatus === 'paid' && order) {
         try {
@@ -263,7 +272,7 @@ const Dashboard = ({ user, onLogout }) => {
               type: 'accepted'
             }
           })
-          
+
           if (smsError) {
             console.error('Eroare trimitere SMS:', smsError)
           } else {
@@ -274,12 +283,14 @@ const Dashboard = ({ user, onLogout }) => {
           // Nu oprim procesul dacă SMS-ul eșuează
         }
       }
-      
+
       // Refresh orders
       fetchOrders()
       setShowModal(null)
     } catch (error) {
       console.error('Error updating order status:', error)
+    } finally {
+      setIsProcessingOrder(false) // Deblochează butoanele
     }
   }
 
@@ -477,19 +488,30 @@ const Dashboard = ({ user, onLogout }) => {
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowModal(null)}
-                  className="flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                  disabled={isProcessingOrder}
+                  className={`flex-1 px-4 py-2 bg-gray-300 text-gray-700 rounded-lg transition-colors ${
+                    isProcessingOrder ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-400'
+                  }`}
                 >
                   Anulează
                 </button>
                 <button
                   onClick={() => updateOrderStatus(showModal.order.id, showModal.type, showModal.reason)}
+                  disabled={isProcessingOrder}
                   className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors ${
-                    showModal.type === 'paid' 
-                      ? 'bg-green-500 hover:bg-green-600' 
-                      : 'bg-red-500 hover:bg-red-600'
+                    isProcessingOrder
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400'
+                      : showModal.type === 'paid'
+                        ? 'bg-green-500 hover:bg-green-600'
+                        : 'bg-red-500 hover:bg-red-600'
                   }`}
                 >
-                  {showModal.type === 'paid' ? 'Confirmă acceptarea' : 'Confirmă respingerea'}
+                  {isProcessingOrder
+                    ? '⏳ Se procesează...'
+                    : showModal.type === 'paid'
+                      ? 'Confirmă acceptarea'
+                      : 'Confirmă respingerea'
+                  }
                 </button>
               </div>
             </div>
