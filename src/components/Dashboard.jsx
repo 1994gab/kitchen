@@ -113,8 +113,8 @@ const Dashboard = ({ user, onLogout }) => {
 
             // Trimite notificare pe Telegram
             try {
-              const telegramToken = '8228181215:AAF7wEnbjyjThi9Y0-cjJdL7YfBWWO_gYn0'
-              const chatId = '6546068787'
+              const telegramToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
+              const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID
               const message = `🔔 COMANDĂ NOUĂ!\n\n` +
                 `📝 ${payload.new.order_number}\n` +
                 `👤 ${payload.new.customer_name}\n` +
