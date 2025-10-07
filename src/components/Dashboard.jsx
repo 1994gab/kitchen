@@ -111,7 +111,7 @@ const Dashboard = ({ user, onLogout }) => {
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 10000)
 
-            // Trimite notificare pe Telegram
+            // Trimite notificare pe Telegram (actualizat cu bot nou)
             try {
               const telegramToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
               const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID
