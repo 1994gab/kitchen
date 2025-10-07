@@ -111,6 +111,29 @@ const Dashboard = ({ user, onLogout }) => {
             setNewOrderNotification(payload.new)
             setTimeout(() => setNewOrderNotification(null), 10000)
 
+            // Trimite notificare pe Telegram
+            try {
+              const telegramToken = '8228181215:AAF7wEnbjyjThi9Y0-cjJdL7YfBWWO_gYn0'
+              const chatId = '6546068787'
+              const message = `🔔 COMANDĂ NOUĂ!\n\n` +
+                `📝 ${payload.new.order_number}\n` +
+                `👤 ${payload.new.customer_name}\n` +
+                `💰 ${payload.new.total} LEI\n` +
+                `📍 ${payload.new.customer_address}\n` +
+                `📞 ${payload.new.customer_phone}`
+
+              fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  chat_id: chatId,
+                  text: message
+                })
+              }).catch(err => console.error('Telegram error:', err))
+            } catch (e) {
+              console.error('Eroare Telegram:', e)
+            }
+
             // VARIANTA 1: Web Audio API (comentat temporar - uneori probleme cu autoplay)
             /*
             try {
