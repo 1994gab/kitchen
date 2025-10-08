@@ -20,7 +20,6 @@ const Dashboard = ({ user, onLogout }) => {
     return audioActivatedDate !== today
   })
   const [isProcessingOrder, setIsProcessingOrder] = useState(false)
-  const [debugMessage, setDebugMessage] = useState('')
   const [showReactivateAudio, setShowReactivateAudio] = useState(false)
 
   useEffect(() => {
@@ -192,71 +191,22 @@ const Dashboard = ({ user, onLogout }) => {
 
             // VARIANTA 2: HTML5 Audio cu fișier local (mai fiabil pentru autoplay)
             try {
-              console.log('🔔 STEP 1: Încerc să redau sunetul...')
-              setDebugMessage('🔔 STEP 1: Start')
-
-              // Sunet telefon fix clasic cu furcă
-              console.log('🔔 STEP 2: Creez obiect Audio')
-              setDebugMessage('🔔 STEP 2: Creez Audio')
-
               const audio = new Audio('/sounds/phone-ring.mp3')
               audio.volume = 1.0
 
-              console.log('🔔 STEP 3: Audio creat, setez listeners')
-              setDebugMessage('🔔 STEP 3: Setez listeners')
-
-              // Log când fișierul se încarcă
-              audio.addEventListener('loadeddata', () => {
-                console.log('📥 STEP 4: Fișier audio încărcat cu succes')
-                setDebugMessage('📥 STEP 4: Fișier încărcat')
-              })
-
-              audio.addEventListener('canplay', () => {
-                console.log('🎵 STEP 5: Audio ready to play')
-                setDebugMessage('🎵 STEP 5: Ready to play')
-              })
-
+              // Oprește sunetul după 15 secunde
               audio.addEventListener('playing', () => {
-                console.log('▶️ STEP 6: Audio PLAYING NOW!')
-                setDebugMessage('▶️ STEP 6: SE REDĂ ACUM!')
+                setTimeout(() => {
+                  audio.pause()
+                  audio.currentTime = 0
+                }, 15000)
               })
 
-              audio.addEventListener('ended', () => {
-                console.log('🏁 STEP 7: Audio finished')
-                setDebugMessage('🏁 STEP 7: S-a terminat')
+              audio.play().catch(err => {
+                console.error('Nu s-a putut reda sunetul:', err)
               })
-
-              audio.addEventListener('error', (e) => {
-                console.error('❌ ERROR: La încărcarea fișierului:', e)
-                setDebugMessage(`❌ ERROR: ${e.type}`)
-              })
-
-              console.log('🔔 STEP 8: Apelez audio.play()...')
-              setDebugMessage('🔔 STEP 8: Apelez play()')
-
-              const playPromise = audio.play()
-
-              console.log('🔔 STEP 9: play() returnat, tip:', typeof playPromise)
-              setDebugMessage('🔔 STEP 9: play() returnat')
-
-              if (playPromise !== undefined) {
-                console.log('🔔 STEP 10: playPromise există, aștept...')
-                setDebugMessage('🔔 STEP 10: Aștept promise')
-
-                playPromise.then(() => {
-                  console.log('✅ STEP 11: Promise resolved - SUCCESS!')
-                  setDebugMessage('✅ STEP 11: SUCCESS!')
-                }).catch(err => {
-                  console.error('❌ STEP 11: Promise rejected:', err.name, err.message)
-                  setDebugMessage(`❌ STEP 11: ${err.name}`)
-                })
-              } else {
-                console.warn('⚠️ STEP 10: playPromise e undefined!')
-                setDebugMessage('⚠️ STEP 10: undefined!')
-              }
             } catch (e) {
-              console.error('❌ CATCH: Eroare generală:', e)
-              setDebugMessage(`❌ CATCH: ${e.message}`)
+              console.error('Eroare la redarea sunetului:', e)
             }
             
             // Notificare browser (opțional)
@@ -458,11 +408,6 @@ const Dashboard = ({ user, onLogout }) => {
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
                 v2.4.0
               </span>
-              {debugMessage && (
-                <div className="bg-yellow-100 border-2 border-yellow-500 text-yellow-900 px-4 py-2 rounded-lg font-bold text-sm">
-                  {debugMessage}
-                </div>
-              )}
               <span className="text-gray-600">
                 Bună, {user.username}!
               </span>
