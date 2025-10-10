@@ -765,11 +765,14 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                                   <div className="flex-1">
                                     <div>
                                       <span className="font-bold text-gray-800 text-lg">
-                                        {item.name}
+                                        {item.sizeWeight
+                                          ? item.name.replace(/\(.*?\)/, `(${item.sizeWeight})`)
+                                          : item.name
+                                        }
                                       </span>
-                                      {item.selectedSize && (
+                                      {item.sizeLabel && (
                                         <span className="bg-blue-200 text-blue-800 font-bold text-sm px-2 py-1 rounded ml-2">
-                                          {item.sizeLabel ? `${item.sizeLabel} (${item.selectedSize} cm)` : `${item.selectedSize} cm`}
+                                          {item.sizeLabel}
                                         </span>
                                       )}
                                     </div>
