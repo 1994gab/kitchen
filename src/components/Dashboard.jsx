@@ -327,6 +327,35 @@ const Dashboard = ({ user, onLogout }) => {
         }
       }
 
+      // Trimite notificare Telegram când comanda este respinsă
+      if (newStatus === 'rejected' && order) {
+        try {
+          const telegramToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
+          const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID
+          const message = `❌ COMANDĂ RESPINSĂ!\n\n` +
+            `📝 ${order.order_number}\n` +
+            `👤 ${order.customer_name}\n` +
+            `💰 ${order.total} LEI\n` +
+            `📍 ${order.customer_address}\n` +
+            `📞 ${order.customer_phone}` +
+            (rejectedReason ? `\n\n📋 Motiv: ${rejectedReason}` : '')
+
+          await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: message
+            })
+          })
+
+          console.log('✅ Notificare Telegram trimisă pentru comanda respinsă')
+        } catch (telegramErr) {
+          console.error('Eroare trimitere Telegram:', telegramErr)
+          // Nu oprim procesul dacă notificarea eșuează
+        }
+      }
+
       // Refresh orders
       fetchOrders()
       setShowModal(null)
