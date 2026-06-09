@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 
-const ProductsManager = () => {
+const ProductsManager = ({ location = 'kristal' }) => {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState(null)
@@ -56,6 +56,7 @@ const ProductsManager = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
+        .eq('location', location)
         .order('category', { ascending: true })
         .order('name', { ascending: true })
 
@@ -202,6 +203,7 @@ const ProductsManager = () => {
         sizes: processedSizes,
         original_price: originalPrice,
         is_on_sale: originalPrice > price,
+        location: location, // produsul nou aparține bucătăriei curente
         created_at: new Date(),
         updated_at: new Date()
       }

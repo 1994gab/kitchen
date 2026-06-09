@@ -4,6 +4,10 @@ import ProductsManager from './ProductsManager'
 import PromoManager from './PromoManager'
 
 const Dashboard = ({ user, onLogout }) => {
+  // Locația bucătăriei vine din contul logat.
+  // Fallback Kristal pentru sesiuni vechi (localStorage fără location).
+  const location = user?.location || 'kristal'
+  const locationLabel = location === 'popesti' ? 'Popești' : 'Kristal'
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('today')
@@ -101,7 +105,7 @@ const Dashboard = ({ user, onLogout }) => {
           }
         })
         .on('postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'orders' },
+          { event: 'INSERT', schema: 'public', table: 'orders', filter: `location=eq.${location}` },
           async (payload) => {
             // Adaug comanda nouă la lista existentă
             setOrders(prevOrders => [payload.new, ...prevOrders])
@@ -114,7 +118,7 @@ const Dashboard = ({ user, onLogout }) => {
             try {
               const telegramToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
               const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID
-              const message = `🔔 COMANDĂ NOUĂ!\n\n` +
+              const message = `🔔 COMANDĂ NOUĂ! [📍 ${locationLabel}]\n\n` +
                 `📝 ${payload.new.order_number}\n` +
                 `👤 ${payload.new.customer_name}\n` +
                 `💰 ${payload.new.total} LEI\n` +
@@ -219,7 +223,7 @@ const Dashboard = ({ user, onLogout }) => {
           }
         )
         .on('postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'orders' },
+          { event: 'UPDATE', schema: 'public', table: 'orders', filter: `location=eq.${location}` },
           (payload) => {
             // Actualizez comanda în listă
             setOrders(prevOrders => 
@@ -267,6 +271,7 @@ const Dashboard = ({ user, onLogout }) => {
       const { data, error } = await supabase
         .from('orders')
         .select('*')
+        .eq('location', location)
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -332,7 +337,7 @@ const Dashboard = ({ user, onLogout }) => {
         try {
           const telegramToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN
           const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID
-          const message = `❌ COMANDĂ RESPINSĂ!\n\n` +
+          const message = `❌ COMANDĂ RESPINSĂ! [📍 ${locationLabel}]\n\n` +
             `📝 ${order.order_number}\n` +
             `👤 ${order.customer_name}\n` +
             `💰 ${order.total} LEI\n` +
@@ -431,9 +436,12 @@ const Dashboard = ({ user, onLogout }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <h1 className="text-2xl font-bold text-gray-900">
-              🍗 Chicken and Pizza - Bucătărie
+              🍗 Chicken and Pizza - Bucătărie {locationLabel}
             </h1>
             <div className="flex items-center space-x-4">
+              <span className={`px-3 py-1 rounded-full text-xs font-bold ${location === 'popesti' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                📍 {locationLabel}
+              </span>
               <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-bold">
                 v2.4.0
               </span>
@@ -536,7 +544,7 @@ const Dashboard = ({ user, onLogout }) => {
 
           {activeTab === 'rejected' && <RejectedOrdersTab rejectedOrders={rejectedOrders} />}
           
-          {activeTab === 'products' && <ProductsManager />}
+          {activeTab === 'products' && <ProductsManager location={location} />}
           
           {activeTab === 'promo' && <PromoManager />}
         </div>
