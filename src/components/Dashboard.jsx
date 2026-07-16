@@ -703,6 +703,19 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                   <div className="border-t pt-4 space-y-4">
                     {/* Total și timpul */}
                     <div className="text-center">
+                      {/* Reducere aplicată (voucher / promoție) — ca staff-ul să vadă DE CE totalul e mai mic */}
+                      {Number(order.discount) > 0 && (
+                        <div className="mb-3 inline-block rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-left">
+                          <div className="flex justify-between gap-8 text-sm text-gray-700">
+                            <span>Subtotal</span>
+                            <span>{(Number(order.total) + Number(order.discount)).toFixed(2)} lei</span>
+                          </div>
+                          <div className="flex justify-between gap-8 text-sm font-semibold text-amber-700">
+                            <span>🎟️ Reducere{order.applied_promotions?.[0]?.name ? ` (${order.applied_promotions[0].name})` : ''}</span>
+                            <span>−{Number(order.discount).toFixed(2)} lei</span>
+                          </div>
+                        </div>
+                      )}
                       <p className="text-lg text-gray-700 mb-1">
                         Prețul de încasat este <span className="text-2xl font-bold text-green-600">{order.total} LEI</span>
                       </p>
