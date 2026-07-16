@@ -877,6 +877,13 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                                         </span>
                                       )}
                                     </div>
+
+                                    {/* Produs CADOU (0 lei) → arată din ce promoție, ca staff-ul să știe de ce e gratis */}
+                                    {Number(item.price) === 0 && (
+                                      <div className="mt-1 inline-block rounded bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                                        🎁 CADOU{order.applied_promotions?.[0]?.name ? ` · promoție: ${order.applied_promotions[0].name}` : ''}
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                                 <div className="text-right">
