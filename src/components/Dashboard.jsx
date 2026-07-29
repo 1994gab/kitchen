@@ -308,8 +308,11 @@ const Dashboard = ({ user, onLogout }) => {
 
       if (error) throw error
 
-      // Trimite SMS dacă comanda a fost acceptată
-      if (newStatus === 'paid' && order) {
+      // Trimite SMS DOAR pentru comenzile de pe SITE (anonime, fără user_id).
+      // Comenzile din APP primesc notificare push automat (trigger DB order_status_push → send-order-push),
+      // deci NU le mai trimitem și SMS. Bucătarul apasă doar Accept — sistemul alege singur canalul.
+      const isWebOrder = order && (order.source ? order.source === 'web' : !order.user_id);
+      if (newStatus === 'paid' && isWebOrder) {
         try {
           const { data: smsData, error: smsError } = await supabase.functions.invoke('send-sms', {
             body: {
@@ -661,6 +664,16 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                   <p className="text-slate-300 text-sm mt-1">
                     📅 {new Date(order.order_date).toLocaleDateString('ro-RO')}
                   </p>
+                  {/* Sursa comenzii: source explicit dacă există, altfel dedus din user_id (app are cont, web e anonim) */}
+                  {(order.source ? order.source === 'web' : !order.user_id) ? (
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-blue-500 text-white">
+                      🌐 Website
+                    </span>
+                  ) : (
+                    <span className="inline-block mt-1.5 px-2 py-0.5 rounded text-xs font-semibold bg-purple-500 text-white">
+                      📱 Aplicație
+                    </span>
+                  )}
                 </div>
                 <div className={`px-4 py-3 rounded-xl text-center font-bold text-sm shadow-lg ${
                   order.status === 'pending' 
