@@ -301,6 +301,33 @@ const Dashboard = ({ user, onLogout }) => {
         updateData.rejected_reason = rejectedReason
       }
 
+      // ─── Plată CARD ONLINE (Stripe) — DOAR pentru comenzile plătite cu cardul în app ───
+      // (au stripe_payment_intent_id + HOLD activ). Cash / card la livrare NU trec pe aici.
+      const isCardOnline =
+        order &&
+        order.payment_method === 'card_online' &&
+        order.stripe_payment_intent_id &&
+        order.payment_status === 'authorized'
+
+      if (newStatus === 'paid' && isCardOnline) {
+        // CAPTURE ÎNTÂI — ia banii din HOLD. Dacă eșuează, NU acceptăm (banii nu s-au luat).
+        const { data: capData, error: capErr } = await supabase.functions.invoke('capture-payment', {
+          body: { paymentIntentId: order.stripe_payment_intent_id },
+        })
+        if (capErr || capData?.error) {
+          alert('Nu am putut încasa plata cu cardul. Comanda NU a fost acceptată — încearcă din nou.')
+          setIsProcessingOrder(false)
+          return
+        }
+      }
+
+      if (newStatus === 'rejected' && isCardOnline) {
+        // VOID — eliberează HOLD-ul (0 lei taxat). Best-effort (HOLD-ul expiră oricum).
+        await supabase.functions
+          .invoke('cancel-payment', { body: { paymentIntentId: order.stripe_payment_intent_id } })
+          .catch(() => {})
+      }
+
       const { error } = await supabase
         .from('orders')
         .update(updateData)
@@ -699,6 +726,11 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                   <div className="text-2xl font-bold text-green-600">
                     {order.total} LEI
                   </div>
+                  {order.payment_method === 'card_online' && (
+                    <span className="inline-block mt-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-green-600 text-white">
+                      💳 PLĂTIT ONLINE
+                    </span>
+                  )}
                   <div className="text-sm text-gray-600">
                     {order.customer_name} • {order.items?.reduce((total, item) => total + item.quantity, 0) || 0} produse
                   </div>
