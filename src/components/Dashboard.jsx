@@ -762,7 +762,11 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                         </div>
                       )}
                       <p className="text-lg text-gray-700 mb-1">
-                        Prețul de încasat este <span className="text-2xl font-bold text-green-600">{order.total} LEI</span>
+                        {order.payment_method === 'card_online' ? (
+                          <>Achitat online ✓ — <span className="text-2xl font-bold text-green-600">nimic de încasat</span></>
+                        ) : (
+                          <>Prețul de încasat este <span className="text-2xl font-bold text-green-600">{order.total} LEI</span></>
+                        )}
                       </p>
                       <p className="text-xs text-gray-500">
                         Comanda s-a efectuat la {new Date(order.created_at).toLocaleDateString('ro-RO')} la ora {new Date(order.created_at).toLocaleTimeString('ro-RO', { 
@@ -788,12 +792,14 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                       </div>
                     </div>
 
-                    {/* Metodă de plată */}
+                    {/* Metodă de plată — 3 cazuri: card_online (plătit în app), card (POS la livrare), numerar */}
                     {order.payment_method && (
                       <div className={`rounded-lg p-4 border-l-4 ${
-                        order.payment_method === 'card'
-                          ? 'bg-purple-50 border-purple-400'
-                          : 'bg-green-50 border-green-400'
+                        order.payment_method === 'card_online'
+                          ? 'bg-green-50 border-green-500'
+                          : order.payment_method === 'card'
+                            ? 'bg-purple-50 border-purple-400'
+                            : 'bg-green-50 border-green-400'
                       }`}>
                         <h4 className={`font-bold mb-2 flex items-center ${
                           order.payment_method === 'card' ? 'text-purple-800' : 'text-green-800'
@@ -802,19 +808,27 @@ const SingleOrderCard = ({ order, showActions, setShowModal }) => {
                         </h4>
                         <div className="flex items-center space-x-2">
                           <span className={`text-2xl font-bold px-4 py-2 rounded-lg ${
-                            order.payment_method === 'card'
-                              ? 'bg-purple-200 text-purple-900'
-                              : 'bg-green-200 text-green-900'
+                            order.payment_method === 'card_online'
+                              ? 'bg-green-600 text-white'
+                              : order.payment_method === 'card'
+                                ? 'bg-purple-200 text-purple-900'
+                                : 'bg-green-200 text-green-900'
                           }`}>
-                            {order.payment_method === 'card' ? '💳 CARD (POS)' : '💵 NUMERAR'}
+                            {order.payment_method === 'card_online'
+                              ? '💳 PLĂTIT ONLINE'
+                              : order.payment_method === 'card'
+                                ? '💳 CARD (POS)'
+                                : '💵 NUMERAR'}
                           </span>
                         </div>
                         <p className={`text-xs mt-2 ${
                           order.payment_method === 'card' ? 'text-purple-700' : 'text-green-700'
                         }`}>
-                          {order.payment_method === 'card'
-                            ? 'Pregătește POS-ul pentru plată cu cardul la livrare'
-                            : 'Plata se va face în numerar la livrare'}
+                          {order.payment_method === 'card_online'
+                            ? 'Achitată online cu cardul — șoferul NU încasează nimic'
+                            : order.payment_method === 'card'
+                              ? 'Pregătește POS-ul pentru plată cu cardul la livrare'
+                              : 'Plata se va face în numerar la livrare'}
                         </p>
                       </div>
                     )}
